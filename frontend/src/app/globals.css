@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+/* Dark mode base styles */
+.dark body {
+  @apply bg-zinc-900 text-zinc-100;
+}
+
+.dark .bg-zinc-50 {
+  @apply bg-zinc-900;
+}
+
+.dark .bg-white {
+  @apply bg-zinc-800;
+}
+
+.dark .text-zinc-900 {
+  @apply text-zinc-100;
+}
+
+.dark .text-zinc-700 {
+  @apply text-zinc-300;
+}
+
+.dark .text-zinc-600 {
+  @apply text-zinc-400;
+}
+
+.dark .text-zinc-500 {
+  @apply text-zinc-400;
+}
+
+.dark .border-zinc-200 {
+  @apply border-zinc-700;
+}
+
+.dark .border-zinc-300 {
+  @apply border-zinc-600;
+}
+
+.dark .hover\:bg-zinc-100:hover {
+  @apply bg-zinc-700;
+}
+
+.dark .hover\:bg-zinc-50:hover {
+  @apply bg-zinc-800;
+}

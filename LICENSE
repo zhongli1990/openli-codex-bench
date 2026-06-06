@@ -1,0 +1,124 @@
+OpenLI Codex - Dual License
+
+Copyright (c) 2026 Lightweight Integration Ltd
+All rights reserved.
+
+================================================================================
+                              DUAL LICENSE NOTICE
+================================================================================
+
+This software is dual-licensed under the terms described below. Your use of
+this software is governed by the license that applies to your organization.
+
+--------------------------------------------------------------------------------
+1. COMMUNITY LICENSE (AGPL-3.0)
+--------------------------------------------------------------------------------
+
+For organizations with annual revenue below £250,000 GBP:
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by the Free
+Software Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
+
+Key obligations under AGPL-3.0:
+- You must provide access to the complete source code
+- Modifications must be released under AGPL-3.0
+- If you run a modified version as a network service, you must make the
+  source code available to users of that service
+- You must preserve copyright notices and license information
+
+--------------------------------------------------------------------------------
+2. COMMERCIAL LICENSE
+--------------------------------------------------------------------------------
+
+For organizations with annual revenue of £250,000 GBP or above:
+
+A commercial license is required to use this software. The commercial license
+removes all AGPL-3.0 obligations and provides additional benefits:
+
+Benefits:
+- Use without open source obligations
+- Create proprietary derivatives
+- Enterprise support and SLA options
+- Indemnification coverage
+- Priority bug fixes and feature requests
+
+Pricing Tiers:
+- SME License (£250K - £2M annual revenue): £500/year
+- Enterprise License (> £2M annual revenue): Contact for custom quote
+
+To obtain a commercial license, contact:
+  Email: Zhong@li-ai.co.uk
+  Web: https://github.com/zhongli1990/saas-codex
+
+--------------------------------------------------------------------------------
+3. TRADEMARK NOTICE
+--------------------------------------------------------------------------------
+
+"OpenLI", "OpenLI Codex", and the OpenLI logo are trademarks of Lightweight Integration
+Ltd. Use of these marks in connection with any product or service requires
+prior written permission from Lightweight Integration Ltd.
+
+You may not use the OpenLI name or logo to:
+- Imply endorsement of your product or service
+- Create confusion about the origin of your product
+- Suggest any official partnership or sponsorship
+
+--------------------------------------------------------------------------------
+4. CONTRIBUTOR LICENSE AGREEMENT
+--------------------------------------------------------------------------------
+
+By contributing to OpenLI Codex, you agree to the following terms:
+
+1. Grant of License: You grant Lightweight Integration Ltd a perpetual,
+   worldwide, non-exclusive, royalty-free, irrevocable license to use,
+   reproduce, modify, display, perform, sublicense, and distribute your
+   contributions as part of this project.
+
+2. Relicensing Rights: You grant Lightweight Integration Ltd the right to
+   relicense your contributions under any license, including proprietary
+   licenses, without additional compensation.
+
+3. Representation: You represent that you are legally entitled to grant the
+   above licenses and that your contributions are your original work or you
+   have sufficient rights to submit them.
+
+4. No Obligation: You understand that Lightweight Integration Ltd is under no
+   obligation to use or include your contributions.
+
+By submitting a pull request or other contribution, you signify your agreement
+to these terms.
+
+--------------------------------------------------------------------------------
+5. THIRD-PARTY COMPONENTS
+--------------------------------------------------------------------------------
+
+This software includes third-party open source components, each with their own
+licenses. See the THIRD_PARTY_LICENSES file for details.
+
+--------------------------------------------------------------------------------
+6. DISCLAIMER
+--------------------------------------------------------------------------------
+
+THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LIGHTWEIGHT
+INTEGRATION LTD BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+================================================================================
+
+Lightweight Integration Ltd
+United Kingdom
+https://github.com/zhongli1990/saas-codex
+
+For licensing inquiries: Zhong@li-ai.co.uk
