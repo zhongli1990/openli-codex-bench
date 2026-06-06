@@ -30,7 +30,7 @@ app.add_middleware(
 )
 
 
-RunnerType = Literal["codex", "claude"]
+RunnerType = Literal["codex", "claude", "opencodex", "mock"]
 SourceType = Literal["github", "local"]
 
 

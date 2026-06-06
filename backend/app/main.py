@@ -235,7 +235,7 @@ app.include_router(auth_router)
 app.include_router(admin_router)
 
 
-RunnerType = Literal["codex", "claude"]
+RunnerType = Literal["codex", "claude", "opencodex", "mock"]
 SourceType = Literal["github", "local"]
 
 

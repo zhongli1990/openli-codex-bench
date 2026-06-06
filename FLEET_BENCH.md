@@ -80,6 +80,19 @@ booting the app stack + scoring outputs, not protocol plumbing.
 ## Status
 - **Phase 1 DONE:** clone + re-range + runner-swap wiring + compose validated; swap targets UP;
   **runner-protocol + body-shape parity VALIDATED** (saas-codex shapes → OpenRunner opencodex runner).
-- **Phase 2 (next):** boot the stack (Phase A baseline), then Phase B single-swap to opencodex over
-  ≥3 annotated cases, emit the parity report JSON (pass/fail, latency, tool calls, citations,
-  transcript link) across old-codex / claude / opencodex / mock.
+- **Phase 2 — product-backend swap PROVEN:** booted postgres + backend (heavy runner/frontend builds
+  skipped); extended `RunnerType` Literal with `opencodex`/`mock`; drove a real session **through the
+  product backend** with `runner_type=opencodex` → `POST /api/sessions` 200 returned a `thread_id`
+  **from OpenRunner's opencodex runner** (host 9432), `POST /api/sessions/{id}/prompt` 200 returned a
+  `run_id`, run executed. The backend container reaches the runner via `host.docker.internal:9432`.
+  Cross-runner **runner-level parity** is in `openrunner/tests/fleet-bench/parity_report.py`
+  (4 runners × 3 cases, 12/12 completed).
+- **Phase 2 remaining (honest):**
+  - **Workspace volume sharing** — fleet-bench's backend and OpenRunner's runner do NOT share the
+    `/workspaces` mount, so the runner sees the working dir but not the cloned content. For a real
+    swap the runner must mount the same workspace volume (or be co-located). Lifecycle parity holds
+    regardless; content-level cases need the shared volume.
+  - **mock/codex/claude backend matrix** — drive the same cases per runner with DISTINCT workspaces
+    (the `uq_workspace_source` constraint rejects reusing one repo_url); emit the full parity report
+    with transcript links + latency + citations.
+  - **Frontend + Playwright** — boot the Next portal and run `frontend/e2e` against it.
