@@ -1,8 +1,8 @@
 /**
- * OpenLI Codex - Enterprise AI Agent Platform
+ * OpenLi Codex - Enterprise AI Agent Platform
  * Copyright (c) 2026 Lightweight Integration Ltd
  * 
- * This file is part of OpenLI Codex.
+ * This file is part of OpenLi Codex.
  * Licensed under AGPL-3.0 (community) or Commercial license.
  * See LICENSE file for details.
  * 

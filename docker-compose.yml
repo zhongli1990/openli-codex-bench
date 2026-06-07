@@ -1,5 +1,8 @@
+name: openli-codex-bench
+
 services:
   postgres:
+    container_name: openli-codex-bench-postgres
     image: postgres:16
     environment:
       POSTGRES_USER: saas
@@ -17,11 +20,12 @@ services:
       start_period: 30s
     restart: unless-stopped
 
-  # Legacy embedded runners REMOVED. fleet-bench now consumes OpenRunner's consolidated runners
+  # Legacy embedded runners REMOVED. openli-codex-bench now consumes OpenRunner's consolidated runners
   # (host-published 9430-9433) for every runner_type — the OpenLI OpenRunner services. Same Unified
   # Runner Protocol → no adapter. Defaults below; override RUNNER_*_URL for a different OpenRunner host.
 
   backend:
+    container_name: openli-codex-bench-backend
     build:
       context: ./backend
     environment:
@@ -38,11 +42,11 @@ services:
       RUNNER_MODE: ${RUNNER_MODE:-gateway}
       OPENRUNNER_GATEWAY_URL: ${OPENRUNNER_GATEWAY_URL:-http://host.docker.internal:9422}
       OPENRUNNER_GATEWAY_TOKEN: ${OPENRUNNER_GATEWAY_TOKEN:-}
-      # Product identity for gateway-mode audit/cost/memory attribution (R6+).
+      # Product identity for gateway-mode audit/cost attribution (R6+).
       # Tenant derives per-session from the authenticated user where available;
       # these are the fallbacks when the session/user has no tenant.
       OPENRUNNER_TENANT: ${OPENRUNNER_TENANT:-default}
-      OPENRUNNER_APP: ${OPENRUNNER_APP:-fleet-bench}
+      OPENRUNNER_APP: ${OPENRUNNER_APP:-openli-codex-bench}
       OPENRUNNER_USER: ${OPENRUNNER_USER:-anon}
       WORKSPACES_ROOT: /workspaces
       PORT: 8080
@@ -69,6 +73,7 @@ services:
     restart: unless-stopped
 
   frontend:
+    container_name: openli-codex-bench-frontend
     build:
       context: ./frontend
     environment:
@@ -89,6 +94,7 @@ services:
     restart: unless-stopped
 
   prompt-manager:
+    container_name: openli-codex-bench-prompt-manager
     build:
       context: ./prompt-manager
     environment:
@@ -112,6 +118,7 @@ services:
     restart: unless-stopped
 
   evaluation:
+    container_name: openli-codex-bench-evaluation
     build:
       context: ./evaluation
     environment:
@@ -127,20 +134,11 @@ services:
       start_period: 30s
     restart: unless-stopped
 
-  memory:
-    build:
-      context: ./memory
-    ports:
-      - "9447:8085"
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8085/health');\""]
-      interval: 10m
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    restart: unless-stopped
+  # Legacy `memory` service REMOVED — these benches use OpenRunner's shared services only;
+  # no per-bench memory store is needed. Port 9447 is intentionally left free.
 
   llm-gateway:
+    container_name: openli-codex-bench-llm-gateway
     build:
       context: ./llm-gateway
     environment:

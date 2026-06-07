@@ -22,7 +22,7 @@ interface VersionHistory {
 const VERSION = "0.7.1";
 const BUILD_DATE = "Feb 9, 2026";
 const PLATFORM_NAME = "OpenLI";
-const PRODUCT_NAME = "OpenLI Codex";
+const PRODUCT_NAME = "OpenLi Codex";
 
 const versionHistory: VersionHistory[] = [
   {
@@ -78,7 +78,7 @@ const versionHistory: VersionHistory[] = [
     version: "0.6.6",
     date: "Feb 8, 2026",
     features: [
-      "Rebranded to OpenLI Codex",
+      "Rebranded to OpenLi Codex",
       "Dual licensing (AGPL-3.0 + Commercial)",
       "Copyright headers and IP protection",
       "Updated documentation and naming structure",
@@ -262,7 +262,7 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
               <div>
                 <h3 className="mb-2 font-semibold text-zinc-900 dark:text-white">Description</h3>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  OpenLI Codex is an enterprise AI agent platform designed for healthcare integration,
+                  OpenLi Codex is an enterprise AI agent platform designed for healthcare integration,
                   clinical workflows, and intelligent document generation. Built with cutting-edge 
                   agentic AI platforms, it provides a multi-tenant SaaS architecture with robust
                   RBAC controls and plug-and-play agent SDK support.
@@ -353,7 +353,7 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
         {/* Footer */}
         <div className="border-t border-zinc-200 bg-zinc-50 px-6 py-3 dark:border-zinc-700 dark:bg-zinc-800/50">
           <p className="text-center text-xs text-zinc-500 dark:text-zinc-400">
-            © 2026 Lightweight Integration Ltd. OpenLI Codex - Enterprise AI Agent Platform.
+            © 2026 Lightweight Integration Ltd. OpenLi Codex - Enterprise AI Agent Platform.
           </p>
         </div>
       </div>

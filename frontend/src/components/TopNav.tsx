@@ -62,7 +62,7 @@ export default function TopNav({ onMenuClick }: TopNavProps) {
               <span className="text-white text-sm font-bold">LI</span>
             </div>
             <div className="text-left">
-              <div className="text-sm font-semibold text-zinc-900 dark:text-white">OpenLI Codex</div>
+              <div className="text-sm font-semibold text-zinc-900 dark:text-white">OpenLi Codex</div>
               <div className="text-[10px] text-zinc-500 dark:text-zinc-400">v{VERSION}</div>
             </div>
           </button>

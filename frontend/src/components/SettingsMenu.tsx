@@ -34,7 +34,7 @@ interface UserGroup {
 const sampleUsers: SampleUser[] = [
   {
     id: "1",
-    email: "admin@saas-codex.com",
+    email: "admin@openli-codex.com",
     displayName: "Platform Admin",
     role: "super_admin",
     tenant: "Platform",

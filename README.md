@@ -1,4 +1,6 @@
-# fleet-bench — Fleet Runner Swap Harness & like-for-like Agent Benchmark
+# OpenLi Codex (openli-codex-bench) — Runner Swap Harness & like-for-like Agent Benchmark
+
+> Renamed from `fleet-bench` → `openli-codex-bench` (rebranded to **OpenLi Codex**).
 
 **Prove that OpenRunner's runners drop into a real product, and benchmark the world's best coding
 agents — Claude Code, OpenAI Codex, and our own OpenCodex — like-for-like on real enterprise work.**
@@ -9,19 +11,19 @@ agents — Claude Code, OpenAI Codex, and our own OpenCodex — like-for-like on
 
 ---
 
-## Why fleet-bench exists
+## Why openli-codex-bench exists
 
 Two questions, one rig:
 
 1. **Swap proof** — can OpenRunner's runners *replace* a product's existing runner with **no adapter**,
    without breaking the product's UX (sessions, SSE streaming, workspaces, transcripts)? saas-codex's
    backend already routes by `runner_type` over the **same Unified Runner Protocol** OpenRunner speaks
-   (`/threads` + `/runs` + `/runs/{id}/events`), so the swap is by config alone — fleet-bench verifies it.
+   (`/threads` + `/runs` + `/runs/{id}/events`), so the swap is by config alone — openli-codex-bench verifies it.
 2. **Agent benchmark** — given the *same* real-world task + the *same* workspace, how do the agents
    compare on **process** (tool use, steps, latency, tokens) and **outcome** (grounded correctness)?
    Same inputs → same golds → compare trace/quality/efficiency. Honest and repeatable.
 
-The methodology, phases, and routing live in [`FLEET_BENCH.md`](FLEET_BENCH.md).
+The methodology, phases, and routing live in [`OPENLI_CODEX_BENCH.md`](OPENLI_CODEX_BENCH.md).
 
 ---
 
@@ -34,7 +36,7 @@ The methodology, phases, and routing live in [`FLEET_BENCH.md`](FLEET_BENCH.md).
 | `claude` | real Claude Code agent (`claude-agent-sdk`) | API key · Claude Code subscription | **OpenRunner** (`9431`) |
 | `mock` | deterministic, zero-token | — | **OpenRunner** (`9433`) |
 
-fleet-bench has **no embedded runners** — the legacy `runner`/`claude-runner` were removed; **every**
+openli-codex-bench has **no embedded runners** — the legacy `runner`/`claude-runner` were removed; **every**
 `runner_type` is served by OpenRunner's consolidated runners (switchable by env `RUNNER_*_URL`).
 
 ---
@@ -64,7 +66,7 @@ fleet-bench has **no embedded runners** — the legacy `runner`/`claude-runner` 
 
 ```bash
 # OpenRunner runners must be up (host 9430-9433) — they are the swap targets.
-cd fleet-bench
+cd openli-codex-bench
 docker compose up -d postgres backend          # Phase A core (clone's product backend)
 # Phase B/C: drive the same cases with runner_type ∈ {codex, claude, opencodex, mock}
 #   POST :9441/api/sessions {runner_type, repo_url}  → routes to the chosen runner
@@ -77,13 +79,14 @@ python3 ../openrunner/tests/fleet-bench/bradford_bench.py    # content-level, Br
 ```
 
 ## Ports (9440–9459, distinct from saas-codex 9100s)
-fe `9440` · be `9441` · codex `9442` · pg `9443` · claude `9444` · prompt `9445` · eval `9446` · memory `9447` · llm-gw `9448`
+fe `9440` · be `9441` · codex `9442` · pg `9443` · claude `9444` · prompt `9445` · eval `9446` · llm-gw `9448`
+(legacy `memory` service on `9447` removed — these benches use OpenRunner's shared services only.)
 
 ## Status
 - **Phase 1 DONE** — clone + re-range + swap wiring + protocol/body parity validated.
 - **Phase 2 — product-backend swap PROVEN** + 3-agent real-world comparison done.
 - **Next** — shared workspace volume for content-level cases through the backend, full backend-routed
-  runner matrix, Playwright smoke, then the ASOS clone (machine-checkable golds). See `FLEET_BENCH.md`.
+  runner matrix, Playwright smoke, then the ASOS clone (machine-checkable golds). See `OPENLI_CODEX_BENCH.md`.
 
 ## Security
 - `.env`, `.env.live`, and `workspaces/` are gitignored. API keys / subscription tokens are env-only,

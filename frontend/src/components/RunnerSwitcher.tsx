@@ -1,5 +1,5 @@
 /**
- * OpenLI Codex - Enterprise AI Agent Platform
+ * OpenLi Codex - Enterprise AI Agent Platform
  * Copyright (c) 2026 Lightweight Integration Ltd
  *
  * Top-bar runner switcher. Bound to the shared runnerType/setRunnerType from

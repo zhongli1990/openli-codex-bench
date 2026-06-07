@@ -15,8 +15,8 @@ import "./globals.css";
 import Providers from "./providers";
 
 export const metadata: Metadata = {
-  title: "OpenLI Codex | Enterprise AI Agent Platform",
-  description: "OpenLI Codex - AI-powered enterprise platform for healthcare, pharma, and banking. Self-evolving multi-tenant agent ecosystem.",
+  title: "OpenLi Codex | Enterprise AI Agent Platform",
+  description: "OpenLi Codex - AI-powered enterprise platform for healthcare, pharma, and banking. Self-evolving multi-tenant agent ecosystem.",
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
       { url: "/apple-icon", type: "image/png", sizes: "180x180" },
     ],
   },
-  applicationName: "OpenLI Codex",
+  applicationName: "OpenLi Codex",
   keywords: ["AI", "Claude", "Healthcare", "NHS", "Enterprise", "SaaS", "Agent"],
 };
 

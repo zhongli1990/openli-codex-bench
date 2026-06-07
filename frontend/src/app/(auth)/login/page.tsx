@@ -34,7 +34,7 @@ export default function LoginPage() {
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
       <div className="mb-6 text-center">
-        <h1 className="text-xl font-semibold text-zinc-900">Sign in to SaaS Codex</h1>
+        <h1 className="text-xl font-semibold text-zinc-900">Sign in to OpenLi Codex</h1>
         <p className="mt-1 text-sm text-zinc-600">Enter your credentials to access your account</p>
       </div>
 

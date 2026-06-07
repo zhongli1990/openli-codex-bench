@@ -511,7 +511,7 @@ function AboutSettings() {
             <span className="text-2xl text-white">🚀</span>
           </div>
           <div>
-            <h4 className="text-xl font-bold text-zinc-900">saas-codex</h4>
+            <h4 className="text-xl font-bold text-zinc-900">OpenLi Codex</h4>
             <p className="text-sm text-zinc-500">AI-Powered Healthcare Integration Platform</p>
           </div>
         </div>
@@ -540,7 +540,7 @@ function AboutSettings() {
         <h4 className="text-sm font-medium text-zinc-900">Resources</h4>
         <div className="space-y-1">
           <a
-            href="https://github.com/zhongli1990/saas-codex"
+            href="https://github.com/zhongli1990/openli-codex-bench"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
@@ -563,7 +563,7 @@ function AboutSettings() {
       </div>
 
       <div className="pt-4 border-t border-zinc-200 text-center text-xs text-zinc-400">
-        © 2026 saas-codex. All rights reserved.
+        © 2026 OpenLi Codex. All rights reserved.
       </div>
     </div>
   );

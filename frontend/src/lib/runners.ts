@@ -1,5 +1,5 @@
 /**
- * OpenLI Codex - Enterprise AI Agent Platform
+ * OpenLi Codex - Enterprise AI Agent Platform
  * Copyright (c) 2026 Lightweight Integration Ltd
  *
  * Single source of truth for the OpenRunner runner types.

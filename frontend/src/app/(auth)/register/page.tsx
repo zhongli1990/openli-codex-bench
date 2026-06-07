@@ -50,7 +50,7 @@ export default function RegisterPage() {
     <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
       <div className="mb-6 text-center">
         <h1 className="text-xl font-semibold text-zinc-900">Create an account</h1>
-        <p className="mt-1 text-sm text-zinc-600">Register to access SaaS Codex</p>
+        <p className="mt-1 text-sm text-zinc-600">Register to access OpenLi Codex</p>
       </div>
 
       {error && (

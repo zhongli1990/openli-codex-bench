@@ -1,8 +1,8 @@
 /**
- * OpenLI Codex - Enterprise AI Agent Platform
+ * OpenLi Codex - Enterprise AI Agent Platform
  * Copyright (c) 2026 Lightweight Integration Ltd
  * 
- * This file is part of OpenLI Codex.
+ * This file is part of OpenLi Codex.
  * Licensed under AGPL-3.0 (community) or Commercial license.
  * See LICENSE file for details.
  * 
@@ -67,7 +67,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           </div>
           {!collapsed && (
             <div className="overflow-hidden">
-              <div className="text-sm font-semibold text-zinc-900 dark:text-white">OpenLI Codex</div>
+              <div className="text-sm font-semibold text-zinc-900 dark:text-white">OpenLi Codex</div>
               <div className="text-[10px] text-zinc-500 dark:text-zinc-400">Clinical Integration SaaS</div>
             </div>
           )}
