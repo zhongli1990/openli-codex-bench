@@ -1,6 +1,7 @@
 .env
 .env.*
 !.env.example
+!.env.aws.example
 
 # Local workspaces (cloned repos, session data)
 workspaces/

@@ -1,0 +1,62 @@
+# fleet-bench — AWS deploy-profile overlay (R5 / G7 readiness; API-KEY-ONLY).
+#
+# Compose with:  docker compose -f docker-compose.yml -f docker-compose.aws.yml <cmd>
+#
+# fleet-bench holds NO provider/model keys: all model auth lives in OpenRunner's services.
+# fleet-bench is the PRODUCT and routes runs to a configurable OpenRunner host:
+#
+#   • RUNNER_MODE=gateway (product path) → runs go through OpenRunner's agent-gateway /v1/*
+#     (audit + cost + memory ownership). Raw mode (per-runner ports) is harness/debug only.
+#   • OPENRUNNER_GATEWAY_URL + RUNNER_*_URL are env-driven; defaults point at the in-VPC
+#     OpenRunner service DNS placeholder (openrunner.internal). Override per environment.
+#   • Secrets (JWT_SECRET_KEY, gateway token, admin password, DB URL) come from env ONLY,
+#     injected by the platform secrets manager. See .env.aws.example + DEPLOY_AWS.md.
+#   • NO subscription auth anywhere: no ~/.codex mount, no CODEX_HOME, no CLAUDE_CODE_OAUTH_TOKEN,
+#     no Keychain. (Grep-verifiable — see DEPLOY_AWS.md §7.) Model API keys are OpenRunner's job.
+#   • restart: unless-stopped + healthchecks are inherited from docker-compose.yml.
+#
+# Egress: fleet-bench reaches only the OpenRunner host (in-VPC) + its own postgres. Provider-API
+# egress (api.openai.com / api.anthropic.com) belongs to the OpenRunner deployment, NOT here.
+#
+# NOTE: secure-product hardening (isolation/egress/SSRF/resource gates) is owned by OpenRunner R9.
+
+services:
+  backend:
+    environment:
+      # --- product path: route through OpenRunner's agent-gateway ---
+      RUNNER_MODE: ${RUNNER_MODE:-gateway}
+      # Configurable OpenRunner host — default = in-VPC service DNS placeholder. Override per env.
+      OPENRUNNER_GATEWAY_URL: ${OPENRUNNER_GATEWAY_URL:-http://openrunner.internal:9422}
+      OPENRUNNER_GATEWAY_TOKEN: ${OPENRUNNER_GATEWAY_TOKEN:-}
+      # Raw per-runner URLs (harness/debug fallback) also point at the configurable host:
+      RUNNER_URL: ${RUNNER_CODEX_URL:-http://openrunner.internal:9430}
+      RUNNER_CODEX_URL: ${RUNNER_CODEX_URL:-http://openrunner.internal:9430}
+      RUNNER_CLAUDE_URL: ${RUNNER_CLAUDE_URL:-http://openrunner.internal:9431}
+      RUNNER_OPENCODEX_URL: ${RUNNER_OPENCODEX_URL:-http://openrunner.internal:9432}
+      RUNNER_MOCK_URL: ${RUNNER_MOCK_URL:-http://openrunner.internal:9433}
+      # --- secrets from env only ---
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://saas:saas@postgres:5432/saas}
+      # --- product identity for gateway-mode attribution ---
+      OPENRUNNER_TENANT: ${OPENRUNNER_TENANT:-default}
+      OPENRUNNER_APP: ${OPENRUNNER_APP:-fleet-bench}
+      OPENRUNNER_USER: ${OPENRUNNER_USER:-anon}
+    # The base compose pins host.docker.internal:host-gateway for local host reach. On AWS the
+    # OpenRunner host is real VPC DNS, so that extra_host is harmless (just an unused alias).
+
+  prompt-manager:
+    environment:
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://saas:saas@postgres:5432/saas}
+
+  evaluation:
+    environment:
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-saas-codex}
+
+  # llm-gateway is present in the base compose for parity, but in the gateway-mode product path
+  # fleet-bench does NOT call it for model egress (OpenRunner owns that). Keep keys empty here.
+  llm-gateway:
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
