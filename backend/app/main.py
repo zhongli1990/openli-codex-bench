@@ -54,6 +54,13 @@ OPENRUNNER_GATEWAY_URL = os.environ.get(
 # the gateway accepts requests without it (tenant defaults). Omit the header when unset.
 OPENRUNNER_GATEWAY_TOKEN = os.environ.get("OPENRUNNER_GATEWAY_TOKEN", "").strip()
 
+# Product identity for gateway-mode attribution (audit/cost/memory in R6+). The
+# gateway reads X-OpenRunner-Tenant/App/User to attribute each run. We derive the
+# tenant from the session when available; App/User fall back to env then defaults.
+OPENRUNNER_APP = os.environ.get("OPENRUNNER_APP", "fleet-bench").strip() or "fleet-bench"
+OPENRUNNER_USER = os.environ.get("OPENRUNNER_USER", "anon").strip() or "anon"
+OPENRUNNER_TENANT = os.environ.get("OPENRUNNER_TENANT", "default").strip() or "default"
+
 # Map fleet-bench runner_type → the gateway's runner kind. fleet-bench calls the
 # OpenAI Codex runner "codex"; the gateway registers it as "openai-codex".
 _GATEWAY_RUNNER_KIND = {
@@ -75,8 +82,11 @@ class RunnerEndpoint:
                     Bearer service-token header.
     """
 
-    def __init__(self, runner_type: str):
+    def __init__(self, runner_type: str, tenant_id: Optional[str] = None):
         self.runner_type = runner_type
+        # Optional product identity for gateway-mode attribution. tenant_id comes
+        # from the session/workspace where available; falls back to env/default.
+        self.tenant_id = tenant_id
         self.mode = RUNNER_MODE if RUNNER_MODE in ("raw", "gateway") else "raw"
         if self.mode == "gateway":
             self.base_url = OPENRUNNER_GATEWAY_URL
@@ -91,9 +101,19 @@ class RunnerEndpoint:
         return f"{self.base_url}{self.prefix}{path}"
 
     def headers(self) -> dict[str, str]:
-        if self.mode == "gateway" and OPENRUNNER_GATEWAY_TOKEN:
-            return {"Authorization": f"Bearer {OPENRUNNER_GATEWAY_TOKEN}"}
-        return {}
+        if self.mode != "gateway":
+            return {}
+        h: dict[str, str] = {
+            # Product identity for real audit/cost/memory attribution (R6+).
+            # Tenant derives from the session; App/User from env/defaults.
+            "X-OpenRunner-Tenant": (str(self.tenant_id) if self.tenant_id else OPENRUNNER_TENANT),
+            "X-OpenRunner-App": OPENRUNNER_APP,
+            "X-OpenRunner-User": OPENRUNNER_USER,
+        }
+        # Keep the optional backend↔gateway service token (secure mode) when set.
+        if OPENRUNNER_GATEWAY_TOKEN:
+            h["Authorization"] = f"Bearer {OPENRUNNER_GATEWAY_TOKEN}"
+        return h
 
     def thread_body(self, working_directory: str, skip_git_repo_check: bool) -> dict:
         body: dict = {
@@ -803,7 +823,10 @@ async def create_session(
     else:
         raise HTTPException(status_code=400, detail="Either workspace_id or repo_url is required")
 
-    endpoint = RunnerEndpoint(req.runner_type)
+    endpoint = RunnerEndpoint(
+        req.runner_type,
+        tenant_id=str(user.tenant_id) if (user and user.tenant_id) else None,
+    )
 
     async with httpx.AsyncClient(timeout=60) as client:
         r = await client.post(
@@ -904,7 +927,10 @@ async def prompt(
         raise HTTPException(status_code=404, detail="session not found")
 
     runner_type = session.runner_type
-    endpoint = RunnerEndpoint(runner_type)
+    endpoint = RunnerEndpoint(
+        runner_type,
+        tenant_id=str(session.tenant_id) if session.tenant_id else None,
+    )
     thread_id = session.runner_thread_id
 
     async with httpx.AsyncClient(timeout=60) as client:
@@ -1092,7 +1118,10 @@ async def run_events(
         raise HTTPException(status_code=404, detail="Session not found")
     
     runner_type = session.runner_type
-    endpoint = RunnerEndpoint(runner_type)
+    endpoint = RunnerEndpoint(
+        runner_type,
+        tenant_id=str(session.tenant_id) if session.tenant_id else None,
+    )
     runner_run_id = run.runner_run_id
 
     async def stream() -> AsyncIterator[bytes]:

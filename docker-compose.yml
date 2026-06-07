@@ -38,12 +38,24 @@ services:
       RUNNER_MODE: ${RUNNER_MODE:-raw}
       OPENRUNNER_GATEWAY_URL: ${OPENRUNNER_GATEWAY_URL:-http://host.docker.internal:9422}
       OPENRUNNER_GATEWAY_TOKEN: ${OPENRUNNER_GATEWAY_TOKEN:-}
+      # Product identity for gateway-mode audit/cost/memory attribution (R6+).
+      # Tenant derives per-session from the authenticated user where available;
+      # these are the fallbacks when the session/user has no tenant.
+      OPENRUNNER_TENANT: ${OPENRUNNER_TENANT:-default}
+      OPENRUNNER_APP: ${OPENRUNNER_APP:-fleet-bench}
+      OPENRUNNER_USER: ${OPENRUNNER_USER:-anon}
       WORKSPACES_ROOT: /workspaces
       PORT: 8080
     extra_hosts:
       - "host.docker.internal:host-gateway"   # reach OpenRunner runners on the host (Linux parity w/ Mac)
     volumes:
-      - ./workspaces:/workspaces
+      # SHARED workspace volume: mount the SAME host dir OpenRunner's runners mount
+      # (openrunner/workspaces), so a session's cloned files land where the runner
+      # actually reads them via the workingDirectory path. Relative paths in compose
+      # resolve against this compose-file's dir, so ../openrunner/workspaces =
+      # CascadeProjects/openrunner/workspaces — the exact dir the runners mount.
+      # Closes the doc 25 §7 workspace-volume risk (R5 STEP 1 / AC-R5-4).
+      - ${SHARED_WORKSPACES:-../openrunner/workspaces}:/workspaces
     ports:
       - "9441:8080"
     depends_on:

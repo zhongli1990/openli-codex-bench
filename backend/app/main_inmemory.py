@@ -1,3 +1,17 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST-ONLY / NON-PRODUCT — in-memory alternate entrypoint.
+#
+# This module is NOT the deployed app. The product backend is `app.main:app`
+# (see backend/Dockerfile CMD + docker-compose `backend`). Nothing imports or
+# runs this file in the container; it exists only as a lightweight in-memory
+# harness (no Postgres) for local experimentation.
+#
+# It does NOT implement the R5 gateway-facade mode, shared-workspace handling,
+# RBAC/tenant identity headers, or persistence. Do NOT rely on it for swap
+# proofs or attribution — use `app.main` for those. Its runner URL defaults are
+# kept loosely aligned with OpenRunner host ports (9430/9431) but are not
+# authoritative; `app.main` is the single source of truth for runner routing.
+# ─────────────────────────────────────────────────────────────────────────────
 import asyncio
 import os
 import pathlib

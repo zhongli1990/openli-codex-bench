@@ -1,0 +1,134 @@
+{
+  "schema": "fleet-bench/r5/runner_matrix/v1",
+  "case_prompt": "List the files in the working directory and name the entry point.",
+  "base_repo": "octocat/Hello-World",
+  "modes": [
+    "raw",
+    "gateway"
+  ],
+  "runners": [
+    "codex",
+    "claude",
+    "opencodex",
+    "mock"
+  ],
+  "summary": {
+    "total": 8,
+    "passed": 8,
+    "failed": 0
+  },
+  "cells": [
+    {
+      "mode": "gateway",
+      "runner_type": "claude",
+      "thread_created": true,
+      "run_started": true,
+      "terminal": "completed",
+      "gateway_audit_record": true,
+      "pass": true,
+      "error": null,
+      "_timing": {
+        "session_ms": 896,
+        "total_ms": 1160
+      }
+    },
+    {
+      "mode": "gateway",
+      "runner_type": "codex",
+      "thread_created": true,
+      "run_started": true,
+      "terminal": "completed",
+      "gateway_audit_record": true,
+      "pass": true,
+      "error": null,
+      "_timing": {
+        "session_ms": 1457,
+        "total_ms": 1759
+      }
+    },
+    {
+      "mode": "gateway",
+      "runner_type": "mock",
+      "thread_created": true,
+      "run_started": true,
+      "terminal": "completed",
+      "gateway_audit_record": true,
+      "pass": true,
+      "error": null,
+      "_timing": {
+        "session_ms": 697,
+        "total_ms": 984
+      }
+    },
+    {
+      "mode": "gateway",
+      "runner_type": "opencodex",
+      "thread_created": true,
+      "run_started": true,
+      "terminal": "completed",
+      "gateway_audit_record": true,
+      "pass": true,
+      "error": null,
+      "_timing": {
+        "session_ms": 972,
+        "total_ms": 1297
+      }
+    },
+    {
+      "mode": "raw",
+      "runner_type": "claude",
+      "thread_created": true,
+      "run_started": true,
+      "terminal": "completed",
+      "gateway_audit_record": null,
+      "pass": true,
+      "error": null,
+      "_timing": {
+        "session_ms": 1294,
+        "total_ms": 1469
+      }
+    },
+    {
+      "mode": "raw",
+      "runner_type": "codex",
+      "thread_created": true,
+      "run_started": true,
+      "terminal": "completed",
+      "gateway_audit_record": null,
+      "pass": true,
+      "error": null,
+      "_timing": {
+        "session_ms": 1995,
+        "total_ms": 2184
+      }
+    },
+    {
+      "mode": "raw",
+      "runner_type": "mock",
+      "thread_created": true,
+      "run_started": true,
+      "terminal": "completed",
+      "gateway_audit_record": null,
+      "pass": true,
+      "error": null,
+      "_timing": {
+        "session_ms": 1194,
+        "total_ms": 1755
+      }
+    },
+    {
+      "mode": "raw",
+      "runner_type": "opencodex",
+      "thread_created": true,
+      "run_started": true,
+      "terminal": "completed",
+      "gateway_audit_record": null,
+      "pass": true,
+      "error": null,
+      "_timing": {
+        "session_ms": 1037,
+        "total_ms": 1405
+      }
+    }
+  ]
+}
