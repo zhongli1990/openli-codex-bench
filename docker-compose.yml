@@ -117,42 +117,17 @@ services:
       start_period: 30s
     restart: unless-stopped
 
-  evaluation:
-    container_name: openli-codex-bench-evaluation
-    build:
-      context: ./evaluation
-    environment:
-      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-}
-      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-saas-codex}
-    ports:
-      - "9446:8084"
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8084/health');\""]
-      interval: 10m
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    restart: unless-stopped
+  # `evaluation` (LangSmith) service REMOVED in this bench clone — it duplicated
+  # OpenRunner's own evaluation/observability and had 0 runtime references from
+  # the backend or frontend. Port 9446 is intentionally left free.
 
   # Legacy `memory` service REMOVED — these benches use OpenRunner's shared services only;
   # no per-bench memory store is needed. Port 9447 is intentionally left free.
 
-  llm-gateway:
-    container_name: openli-codex-bench-llm-gateway
-    build:
-      context: ./llm-gateway
-    environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-    ports:
-      - "9448:8086"
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8086/health');\""]
-      interval: 10m
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    restart: unless-stopped
+  # `llm-gateway` service REMOVED in this bench clone — it duplicated OpenRunner's
+  # own llm-gateway and had 0 runtime references from the backend or frontend.
+  # The product runs in gateway-mode through OpenRunner's agent-gateway.
+  # Port 9448 is intentionally left free.
 
 volumes:
   postgres_data:

@@ -49,14 +49,6 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-}
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://saas:saas@postgres:5432/saas}
 
-  evaluation:
-    environment:
-      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-}
-      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-saas-codex}
-
-  # llm-gateway is present in the base compose for parity, but in the gateway-mode product path
-  # fleet-bench does NOT call it for model egress (OpenRunner owns that). Keep keys empty here.
-  llm-gateway:
-    environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  # `evaluation` + `llm-gateway` service overrides REMOVED — both services were dropped from the
+  # base docker-compose.yml (duplicated OpenRunner's evaluation/observability + llm-gateway,
+  # 0 runtime references). Model egress + observability are owned by the OpenRunner deployment.

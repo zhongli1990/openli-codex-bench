@@ -39,7 +39,7 @@ in-VPC `openrunner.internal` DNS placeholder), and takes all secrets from env on
 ## 2. Deploy targets
 
 **ECS / Fargate (recommended).** One task per service (backend, frontend, prompt-manager,
-evaluation, memory, llm-gateway, postgres-or-RDS). Map compose `environment:` keys to task-def
+postgres-or-RDS). Map compose `environment:` keys to task-def
 `environment` (non-secret) / `secrets` (SSM/Secrets Manager). ECS service replaces unhealthy tasks
 (uses the compose healthchecks or an ALB health check). Front backend (8080) + frontend (3000) with
 an ALB; keep the rest private. Use RDS for postgres in production (override `DATABASE_URL`).
@@ -55,7 +55,6 @@ an ALB; keep the rest private. Use RDS for postgres in production (override `DAT
 | `/fleet-bench/prod/OPENRUNNER_GATEWAY_TOKEN`| `OPENRUNNER_GATEWAY_TOKEN` | backend (auth to OpenRunner)  |
 | `/fleet-bench/prod/ADMIN_PASSWORD`         | `ADMIN_PASSWORD`           | backend bootstrap             |
 | (optional) RDS conn string                 | `DATABASE_URL`             | backend + prompt-manager      |
-| (optional) `/fleet-bench/prod/LANGSMITH_API_KEY`| `LANGSMITH_API_KEY`   | evaluation                    |
 
 Non-secret config (set as plain task-def `environment`): `RUNNER_MODE`, `OPENRUNNER_GATEWAY_URL`,
 `RUNNER_*_URL`, `OPENRUNNER_TENANT/APP/USER`.
@@ -65,22 +64,22 @@ No `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` here — those belong to the OpenRunne
 ## 4. Ports + egress
 
 **Published (base compose):** frontend `9440→3000`, backend `9441→8080`, postgres `9443→5432`,
-prompt-manager `9445→8083`, evaluation `9446→8084`, memory `9447→8085`, llm-gateway `9448→8086`. On
-AWS expose only frontend + backend via the ALB; keep the rest private.
+prompt-manager `9445→8083`. (Ports 9446/9447/9448 left free — `evaluation`/`memory`/`llm-gateway`
+removed; consumed from OpenRunner.) On AWS expose only frontend + backend via the ALB; keep the
+rest private.
 
 **Required egress:**
 - The **OpenRunner host** (in-VPC), default `openrunner.internal:9422` (gateway) /
   `:9430-9433` (raw). Keep this VPC-internal.
 - fleet-bench's own postgres / RDS.
-- (optional) LangSmith if `LANGSMITH_API_KEY` is set.
 
 fleet-bench makes **no provider-API calls** in the product (gateway) path — provider egress
 (`api.openai.com` / `api.anthropic.com`) is OpenRunner's, not fleet-bench's.
 
 ## 5. Healthchecks + restart
 
-`restart: unless-stopped` + per-service healthchecks (`/health` for backend, prompt-manager,
-evaluation, memory, llm-gateway; `/healthz.txt` for frontend; `pg_isready` for postgres) are all in
+`restart: unless-stopped` + per-service healthchecks (`/health` for backend, prompt-manager;
+`/healthz.txt` for frontend; `pg_isready` for postgres) are all in
 the base compose. ECS uses them to gate traffic and replace unhealthy tasks.
 
 ## 6. Dry-run boot
