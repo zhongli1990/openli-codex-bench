@@ -4,20 +4,27 @@ import { useState, useEffect, useCallback } from "react";
 import { RUNNERS, DEFAULT_RUNNER, type RunnerType } from "@/lib/runners";
 import { useAppContext } from "@/contexts/AppContext";
 
-type SettingsCategory = "general" | "runners" | "appearance" | "about";
+type SettingsCategory = "general" | "appearance" | "about";
+
+// The LLM model behind each runner is FIXED server-side by the cost model
+// (it is not user-selectable). Surface it as read-only text sourced here so the
+// Settings page can't misrepresent control. Placeholder runners are mock-backed.
+const RUNNER_FIXED_MODEL: Record<RunnerType, string> = {
+  opencodex: "gpt-4o",
+  codex: "gpt-5.5",
+  claude: "claude-opus-4-8",
+  mock: "—",
+  gemini: "—",
+  azure: "—",
+  bedrock: "—",
+  custom: "—",
+};
 
 type Settings = {
   general: {
     defaultRunner: RunnerType;
     sessionTimeout: number;
     autoSave: boolean;
-  };
-  runners: {
-    codexModel: string;
-    claudeModel: string;
-    maxTokens: number;
-    temperature: number;
-    timeout: number;
   };
   appearance: {
     theme: string;
@@ -32,13 +39,6 @@ const DEFAULT_SETTINGS: Settings = {
     defaultRunner: DEFAULT_RUNNER,
     sessionTimeout: 60,
     autoSave: true,
-  },
-  runners: {
-    codexModel: "codex-sdk",
-    claudeModel: "claude-sonnet-4-20250514",
-    maxTokens: 8192,
-    temperature: 0.7,
-    timeout: 300,
   },
   appearance: {
     theme: "system",
@@ -98,7 +98,6 @@ function SettingsSidebar({
 }) {
   const categories: { id: SettingsCategory; label: string; icon: string }[] = [
     { id: "general", label: "General", icon: "⚙️" },
-    { id: "runners", label: "Runners", icon: "🤖" },
     { id: "appearance", label: "Appearance", icon: "🎨" },
     { id: "about", label: "About", icon: "ℹ️" },
   ];
@@ -201,10 +200,16 @@ function GeneralSettings({
                     </p>
                     <p className="text-xs text-zinc-500">{runner.description}</p>
                   </div>
+                  <span className="ml-auto rounded bg-zinc-100 px-2 py-0.5 font-mono text-[11px] text-zinc-500">
+                    {RUNNER_FIXED_MODEL[runner.value]}
+                  </span>
                 </label>
               );
             })}
           </div>
+          <p className="mt-2 text-xs text-zinc-500">
+            The model behind each runner is fixed by the cost model and is not user-configurable.
+          </p>
         </div>
 
         <div>
@@ -255,131 +260,7 @@ function GeneralSettings({
   );
 }
 
-function RunnerSettings({ 
-  settings, 
-  onUpdate 
-}: { 
-  settings: Settings; 
-  onUpdate: (settings: Settings) => void;
-}) {
-  const [saved, setSaved] = useState(false);
-
-  const handleSave = () => {
-    onUpdate(settings);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
-  const updateRunner = (key: keyof Settings["runners"], value: string | number) => {
-    onUpdate({
-      ...settings,
-      runners: { ...settings.runners, [key]: value }
-    });
-  };
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium text-zinc-900">Runner Configuration</h3>
-        <p className="mt-1 text-sm text-zinc-500">Configure AI model parameters</p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-zinc-700">OpenAI Agent</label>
-            <p className="text-xs text-zinc-500 mt-0.5">OpenAI Codex SDK (agentic)</p>
-            <select
-              value={settings.runners.codexModel}
-              onChange={(e) => updateRunner("codexModel", e.target.value)}
-              className="mt-2 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-            >
-              <option value="codex-sdk">OpenAI Codex SDK (Default)</option>
-            </select>
-            <p className="text-xs text-zinc-400 mt-1">Uses @openai/codex-sdk v0.84.0</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-700">Claude Model</label>
-            <p className="text-xs text-zinc-500 mt-0.5">Anthropic Claude API</p>
-            <select
-              value={settings.runners.claudeModel}
-              onChange={(e) => updateRunner("claudeModel", e.target.value)}
-              className="mt-2 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-            >
-              <optgroup label="Claude 4 (Latest)">
-                <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (2025-05-14)</option>
-              </optgroup>
-              <optgroup label="Claude 3.5">
-                <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (2024-10-22)</option>
-                <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku (2024-10-22)</option>
-              </optgroup>
-              <optgroup label="Claude 3">
-                <option value="claude-3-opus-20240229">Claude 3 Opus (2024-02-29)</option>
-                <option value="claude-3-sonnet-20240229">Claude 3 Sonnet (2024-02-29)</option>
-                <option value="claude-3-haiku-20240307">Claude 3 Haiku (2024-03-07)</option>
-              </optgroup>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-zinc-700">Max Tokens</label>
-          <p className="text-xs text-zinc-500 mt-0.5">Maximum response length</p>
-          <input
-            type="number"
-            value={settings.runners.maxTokens}
-            onChange={(e) => updateRunner("maxTokens", parseInt(e.target.value) || 8192)}
-            min={256}
-            max={200000}
-            className="mt-2 w-32 rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-zinc-700">Temperature</label>
-          <p className="text-xs text-zinc-500 mt-0.5">Response creativity (0 = deterministic, 1 = creative)</p>
-          <div className="mt-2 flex items-center gap-4">
-            <input
-              type="range"
-              value={settings.runners.temperature}
-              onChange={(e) => updateRunner("temperature", parseFloat(e.target.value))}
-              min={0}
-              max={1}
-              step={0.1}
-              className="w-48"
-            />
-            <span className="text-sm text-zinc-600 w-8">{settings.runners.temperature}</span>
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-zinc-700">Run Timeout (seconds)</label>
-          <p className="text-xs text-zinc-500 mt-0.5">Maximum duration for a single run</p>
-          <input
-            type="number"
-            value={settings.runners.timeout}
-            onChange={(e) => updateRunner("timeout", parseInt(e.target.value) || 300)}
-            min={30}
-            max={3600}
-            className="mt-2 w-32 rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-          />
-        </div>
-      </div>
-
-      <div className="pt-4 border-t border-zinc-200 flex items-center gap-3">
-        <button 
-          onClick={handleSave}
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-        >
-          Save Changes
-        </button>
-        {saved && <span className="text-sm text-green-600">✓ Saved</span>}
-      </div>
-    </div>
-  );
-}
-
-function AppearanceSettings({ 
+function AppearanceSettings({
   settings, 
   onUpdate 
 }: { 
@@ -606,7 +487,6 @@ export default function SettingsPage() {
         {/* Content */}
         <div className="flex-1 rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
           {activeCategory === "general" && <GeneralSettings settings={settings} onUpdate={handleUpdate} />}
-          {activeCategory === "runners" && <RunnerSettings settings={settings} onUpdate={handleUpdate} />}
           {activeCategory === "appearance" && <AppearanceSettings settings={settings} onUpdate={handleUpdate} />}
           {activeCategory === "about" && <AboutSettings />}
         </div>
