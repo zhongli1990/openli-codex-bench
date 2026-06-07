@@ -4,6 +4,23 @@ fleet-bench is a benchmark rig, not a shipped product — "releases" mark harnes
 (The previous `docs/` tree was inherited verbatim from the cloned `saas-codex` product and has been
 removed; those docs live in the `saas-codex` repo. fleet-bench's docs are `README.md` + `FLEET_BENCH.md`.)
 
+## v0.3.0 (2026-06-07) — Consolidated onto OpenRunner + 4-runner switchable UI
+- **Legacy embedded runners removed** — deleted `runner/` (codex-sdk 0.84) + `claude-runner/`
+  (claude-agent-sdk 0.1.30) + their compose services. **Every `runner_type` now routes to OpenRunner's
+  consolidated runners** (host 9430–9433) over the identical protocol — no adapter, no fork. fleet-bench
+  is the first pure consumer of the OpenLI OpenRunner services. Proven: codex/claude/opencodex sessions
+  create a thread on OpenRunner.
+- **4-runner switchable UI** — single source of truth (`frontend/src/lib/runners.ts`). 4 **live**
+  runners (opencodex[default]/codex/claude/mock) each send their own `runner_type`; 4 **placeholder**
+  runners (gemini/azure/bedrock/custom) are mock-backed with a "to be activated" warning + Soon badge.
+  Switchable anytime from the **top-bar switcher** AND **Settings** (now wired to AppContext — was a
+  dead setting), consistent across codex/chat/projects/dashboard. Peer-reviewed: 7/7 release invariants
+  PASS; `tsc` clean.
+- **QA gates** (`openrunner/docs/25` §6): G1 unit · G2 cross-runner parity + Bradford acceptance
+  (zero-token) ✅ · G3 frontend quality ✅. Pending for full sign-off: G4 Playwright UI e2e · G5
+  shared-workspace regression report · G7 AWS readiness.
+- **App ladder updated** (reviewer): fleet-bench → openbid + opensop → ASOS → OpenTax → rest.
+
 ## v0.2.0 (2026-06-07) — Real 3-agent benchmark on a real estate
 - **Runner-protocol + body-shape parity VALIDATED** — saas-codex's `/threads`+`/runs`+`/events` shapes
   drive OpenRunner's runners with **no adapter**.

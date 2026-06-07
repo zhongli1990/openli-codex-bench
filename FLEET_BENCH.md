@@ -47,7 +47,13 @@ Per case × runner: wall time, steps, tool calls, tokens, vision/web/mcp calls, 
 transcript**, tool-call assertions, citations/guardrails, expected-output match. Stored as JSON for
 trend + side-by-side. (Reuses OpenRunner's `tests/efficiency/bench.py` metric shape.)
 
-## App ladder (per the review)
+## App ladder (reviewer-aligned)
+**fleet-bench → openbid + opensop → ASOS → OpenTax → rest of fleet** (gsj, opentrials, HIE, saas-codex).
+openbid (proposal/knowledge) + opensop (SOP/document) come before ASOS because they're closest to the
+saas-codex runner pattern and stress OpenCodex's differentiators (memory, web/MCP, document
+intelligence, subagents); ASOS is then the objective machine-checkable gold gate before the OpenTax
+flagship. Full plan + QA gates: `openrunner/docs/25`.
+
 1. **fleet-bench (this)** — runner swap canary: proves OpenRunner replaces the old runner path
    without breaking product UX (session/streaming/workspace/transcript).
 2. **ASOS PO-triage** — best machine-checkable bench (frozen golds, structured outputs, citations,
