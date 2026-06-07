@@ -16,9 +16,16 @@ removed; those docs live in the `saas-codex` repo. fleet-bench's docs are `READM
   Switchable anytime from the **top-bar switcher** AND **Settings** (now wired to AppContext — was a
   dead setting), consistent across codex/chat/projects/dashboard. Peer-reviewed: 7/7 release invariants
   PASS; `tsc` clean.
-- **QA gates** (`openrunner/docs/25` §6): G1 unit · G2 cross-runner parity + Bradford acceptance
-  (zero-token) ✅ · G3 frontend quality ✅. Pending for full sign-off: G4 Playwright UI e2e · G5
-  shared-workspace regression report · G7 AWS readiness.
+- **Gateway/facade mode (platform swap) — implemented + proven.** New `RUNNER_MODE` env: `raw`
+  (default; backend → runner ports 9430-9433, for harness/debug) or `gateway` (backend → OpenRunner
+  **agent-gateway** `:9422` `/v1/threads`+`/v1/runs`+`/v1/events` with a `runner` field). In gateway
+  mode OpenRunner owns selection/registry/audit/cost — verified: a run created a gateway `/v1/audit`
+  `sandbox.acquired {runner: opencodex, base_url: runner-opencodex:8083}` record that only the gateway
+  path produces. Clean `RunnerEndpoint` abstraction; raw mode unchanged. (codex→openai-codex name-mapped
+  for the gateway registry.) No service token needed in the capability_lab profile.
+- **QA gates** (`openrunner/docs/25` §6 · roadmap `docs/26`): G1 unit · G2 cross-runner parity +
+  Bradford acceptance (zero-token) ✅ · G3 frontend quality ✅ · raw+gateway routing ✅. Pending for full
+  R5 sign-off: G4 Playwright UI e2e · G5 shared-workspace regression report · G7 AWS readiness.
 - **App ladder updated** (reviewer): fleet-bench → openbid + opensop → ASOS → OpenTax → rest.
 
 ## v0.2.0 (2026-06-07) — Real 3-agent benchmark on a real estate

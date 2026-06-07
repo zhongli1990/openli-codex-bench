@@ -33,6 +33,11 @@ services:
       RUNNER_CLAUDE_URL: ${RUNNER_CLAUDE_URL:-http://host.docker.internal:9431}
       RUNNER_OPENCODEX_URL: ${RUNNER_OPENCODEX_URL:-http://host.docker.internal:9432}
       RUNNER_MOCK_URL: ${RUNNER_MOCK_URL:-http://host.docker.internal:9433}
+      # Gateway/facade mode: route runs through OpenRunner's agent-gateway (/v1/*)
+      # instead of raw runner ports. raw (default) keeps current behaviour.
+      RUNNER_MODE: ${RUNNER_MODE:-raw}
+      OPENRUNNER_GATEWAY_URL: ${OPENRUNNER_GATEWAY_URL:-http://host.docker.internal:9422}
+      OPENRUNNER_GATEWAY_TOKEN: ${OPENRUNNER_GATEWAY_TOKEN:-}
       WORKSPACES_ROOT: /workspaces
       PORT: 8080
     extra_hosts:

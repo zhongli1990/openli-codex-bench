@@ -38,6 +38,78 @@ RUNNER_CLAUDE_URL = os.environ.get("RUNNER_CLAUDE_URL", "http://host.docker.inte
 RUNNER_OPENCODEX_URL = os.environ.get("RUNNER_OPENCODEX_URL", "http://host.docker.internal:9432")
 RUNNER_MOCK_URL = os.environ.get("RUNNER_MOCK_URL", "http://host.docker.internal:9433")
 
+# ── Gateway / facade mode ────────────────────────────────────────────────────
+# RUNNER_MODE switches whether fleet-bench talks to raw runner ports (default,
+# unchanged behaviour) or routes every run THROUGH OpenRunner's agent-gateway
+# (the platform facade). In gateway mode the same /threads + /runs + /events
+# protocol is spoken, but under the gateway's /v1/* prefix with a `runner` field
+# selecting the target runner. This turns a "runner container swap" into a
+# full "OpenRunner platform swap" without touching the run-path call sites.
+RUNNER_MODE = os.environ.get("RUNNER_MODE", "raw").strip().lower()
+OPENRUNNER_GATEWAY_URL = os.environ.get(
+    "OPENRUNNER_GATEWAY_URL", "http://host.docker.internal:9422"
+).rstrip("/")
+# Optional backend↔gateway service token. The gateway only REQUIRES it to assert
+# tenant/app/user via X-OpenRunner-* headers (secure mode); in dev/capability_lab
+# the gateway accepts requests without it (tenant defaults). Omit the header when unset.
+OPENRUNNER_GATEWAY_TOKEN = os.environ.get("OPENRUNNER_GATEWAY_TOKEN", "").strip()
+
+# Map fleet-bench runner_type → the gateway's runner kind. fleet-bench calls the
+# OpenAI Codex runner "codex"; the gateway registers it as "openai-codex".
+_GATEWAY_RUNNER_KIND = {
+    "codex": "openai-codex",
+    "claude": "claude",
+    "opencodex": "opencodex",
+    "mock": "mock",
+}
+
+
+class RunnerEndpoint:
+    """Resolves the base URL, path prefix, request-body shape, and auth headers
+    for the active RUNNER_MODE, so the run-path call sites stay mode-agnostic.
+
+    raw mode      → base = RUNNER_*_URL for the runner_type, prefix = "",
+                    bodies carry no `runner` field (the URL selects the runner).
+    gateway mode  → base = OPENRUNNER_GATEWAY_URL, prefix = "/v1", bodies carry
+                    a `runner` field (the gateway selects the runner), optional
+                    Bearer service-token header.
+    """
+
+    def __init__(self, runner_type: str):
+        self.runner_type = runner_type
+        self.mode = RUNNER_MODE if RUNNER_MODE in ("raw", "gateway") else "raw"
+        if self.mode == "gateway":
+            self.base_url = OPENRUNNER_GATEWAY_URL
+            self.prefix = "/v1"
+            self._gateway_runner = _GATEWAY_RUNNER_KIND.get(runner_type, runner_type)
+        else:
+            self.base_url = _get_runner_url(runner_type)
+            self.prefix = ""
+            self._gateway_runner = None
+
+    def url(self, path: str) -> str:
+        return f"{self.base_url}{self.prefix}{path}"
+
+    def headers(self) -> dict[str, str]:
+        if self.mode == "gateway" and OPENRUNNER_GATEWAY_TOKEN:
+            return {"Authorization": f"Bearer {OPENRUNNER_GATEWAY_TOKEN}"}
+        return {}
+
+    def thread_body(self, working_directory: str, skip_git_repo_check: bool) -> dict:
+        body: dict = {
+            "workingDirectory": working_directory,
+            "skipGitRepoCheck": skip_git_repo_check,
+        }
+        if self.mode == "gateway":
+            body["runner"] = self._gateway_runner
+        return body
+
+    def run_body(self, thread_id: str, prompt: str) -> dict:
+        body: dict = {"threadId": thread_id, "prompt": prompt}
+        if self.mode == "gateway":
+            body["runner"] = self._gateway_runner
+        return body
+
 
 def _derive_display_name(source_type: str, source_uri: str) -> str:
     if source_type == "github":
@@ -731,12 +803,13 @@ async def create_session(
     else:
         raise HTTPException(status_code=400, detail="Either workspace_id or repo_url is required")
 
-    runner_url = _get_runner_url(req.runner_type)
+    endpoint = RunnerEndpoint(req.runner_type)
 
     async with httpx.AsyncClient(timeout=60) as client:
         r = await client.post(
-            f"{runner_url}/threads",
-            json={"workingDirectory": repo_path, "skipGitRepoCheck": True},
+            endpoint.url("/threads"),
+            json=endpoint.thread_body(repo_path, skip_git_repo_check=True),
+            headers=endpoint.headers(),
         )
         if r.status_code >= 400:
             raise HTTPException(status_code=502, detail=f"runner error: {r.text}")
@@ -831,42 +904,45 @@ async def prompt(
         raise HTTPException(status_code=404, detail="session not found")
 
     runner_type = session.runner_type
-    runner_url = _get_runner_url(runner_type)
+    endpoint = RunnerEndpoint(runner_type)
     thread_id = session.runner_thread_id
 
     async with httpx.AsyncClient(timeout=60) as client:
         r = await client.post(
-            f"{runner_url}/runs",
-            json={"threadId": thread_id, "prompt": req.prompt},
+            endpoint.url("/runs"),
+            json=endpoint.run_body(thread_id, req.prompt),
+            headers=endpoint.headers(),
         )
-        
+
         # If thread not found (404), try to recreate it
         if r.status_code == 404 and "thread not found" in r.text.lower():
             # Get workspace path for thread recreation
             workspace = await ws_repo.get_by_id(session.workspace_id) if session.workspace_id else None
             if not workspace:
                 raise HTTPException(status_code=502, detail="Session thread expired and workspace not found for recovery")
-            
+
             # Recreate thread
             thread_r = await client.post(
-                f"{runner_url}/threads",
-                json={"workingDirectory": workspace.local_path, "skipGitRepoCheck": False},
+                endpoint.url("/threads"),
+                json=endpoint.thread_body(workspace.local_path, skip_git_repo_check=False),
+                headers=endpoint.headers(),
             )
             if thread_r.status_code >= 400:
                 raise HTTPException(status_code=502, detail=f"Failed to recreate thread: {thread_r.text}")
-            
+
             new_thread_id = thread_r.json().get("threadId")
             if not new_thread_id:
                 raise HTTPException(status_code=502, detail="Runner did not return threadId on recovery")
-            
+
             # Update session with new thread ID
             await session_repo.update_thread_id(session.id, new_thread_id)
             thread_id = new_thread_id
-            
+
             # Retry the run with new thread
             r = await client.post(
-                f"{runner_url}/runs",
-                json={"threadId": thread_id, "prompt": req.prompt},
+                endpoint.url("/runs"),
+                json=endpoint.run_body(thread_id, req.prompt),
+                headers=endpoint.headers(),
             )
         
         if r.status_code >= 400:
@@ -1016,7 +1092,7 @@ async def run_events(
         raise HTTPException(status_code=404, detail="Session not found")
     
     runner_type = session.runner_type
-    runner_url = _get_runner_url(runner_type)
+    endpoint = RunnerEndpoint(runner_type)
     runner_run_id = run.runner_run_id
 
     async def stream() -> AsyncIterator[bytes]:
@@ -1025,8 +1101,8 @@ async def run_events(
         async with httpx.AsyncClient(timeout=None) as client:
             async with client.stream(
                 "GET",
-                f"{runner_url}/runs/{runner_run_id}/events",
-                headers={"Accept": "text/event-stream"},
+                endpoint.url(f"/runs/{runner_run_id}/events"),
+                headers={"Accept": "text/event-stream", **endpoint.headers()},
             ) as r:
                 if r.status_code >= 400:
                     yield f"data: {{\"type\":\"error\",\"message\":{r.text!r}}}\n\n".encode("utf-8")
