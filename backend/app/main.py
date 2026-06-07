@@ -124,11 +124,53 @@ class RunnerEndpoint:
             body["runner"] = self._gateway_runner
         return body
 
-    def run_body(self, thread_id: str, prompt: str) -> dict:
+    def run_body(self, thread_id: str, prompt: str,
+                 conversation_history: list[dict] | None = None) -> dict:
         body: dict = {"threadId": thread_id, "prompt": prompt}
+        if conversation_history:
+            # Prior turns [{role, content}] so the runner/model has multi-turn context.
+            body["conversationHistory"] = conversation_history
         if self.mode == "gateway":
             body["runner"] = self._gateway_runner
         return body
+
+
+def _assistant_text_from_events(events: list) -> str:
+    """Reconstruct the assistant's answer text for a completed run from its stored URP
+    events. Tolerant of both `data` and `payload` frame shapes; prefers an explicit
+    `assistant.final`, else concatenates `assistant.delta` text."""
+    final = None
+    deltas: list[str] = []
+    for ev in events:
+        raw = ev.raw_json if isinstance(ev.raw_json, dict) else {}
+        etype = raw.get("type", "")
+        body = raw.get("payload") if isinstance(raw.get("payload"), dict) else raw.get("data", {})
+        if not isinstance(body, dict):
+            body = {}
+        if etype == "ui.message.assistant.final":
+            final = body.get("text", "")
+        elif etype == "ui.message.assistant.delta":
+            deltas.append(body.get("textDelta", "") or "")
+    text = (final if final is not None else "".join(deltas)).strip()
+    return text
+
+
+async def _assemble_conversation_history(run_repo, session_id) -> list[dict]:
+    """Assemble prior turns for a session as [{role:"user"|"assistant", content}].
+    For each PRIOR completed run (oldest→newest): the user turn = run.prompt; the
+    assistant turn = reconstructed answer text (omitted if empty). First turn of a
+    session yields [] → first-turn behavior is unchanged."""
+    runs = await run_repo.list_by_session(session_id)
+    runs = sorted(runs, key=lambda r: r.created_at)  # oldest first
+    history: list[dict] = []
+    for r in runs:
+        if r.prompt:
+            history.append({"role": "user", "content": r.prompt})
+        events = await run_repo.get_events(r.id)
+        answer = _assistant_text_from_events(events)
+        if answer:
+            history.append({"role": "assistant", "content": answer})
+    return history
 
 
 def _derive_display_name(source_type: str, source_uri: str) -> str:
@@ -933,10 +975,15 @@ async def prompt(
     )
     thread_id = session.runner_thread_id
 
+    # Multi-turn: assemble prior turns from this session's earlier runs BEFORE persisting
+    # the new run, so follow-up prompts carry conversation context to the model. First
+    # turn → empty history → behavior unchanged.
+    conversation_history = await _assemble_conversation_history(run_repo, session.id)
+
     async with httpx.AsyncClient(timeout=60) as client:
         r = await client.post(
             endpoint.url("/runs"),
-            json=endpoint.run_body(thread_id, req.prompt),
+            json=endpoint.run_body(thread_id, req.prompt, conversation_history),
             headers=endpoint.headers(),
         )
 
@@ -964,10 +1011,10 @@ async def prompt(
             await session_repo.update_thread_id(session.id, new_thread_id)
             thread_id = new_thread_id
 
-            # Retry the run with new thread
+            # Retry the run with new thread (carry the same assembled history)
             r = await client.post(
                 endpoint.url("/runs"),
-                json=endpoint.run_body(thread_id, req.prompt),
+                json=endpoint.run_body(thread_id, req.prompt, conversation_history),
                 headers=endpoint.headers(),
             )
         
