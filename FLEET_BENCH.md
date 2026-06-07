@@ -24,7 +24,19 @@ All overridable via env (`RUNNER_*_URL`). **fleet-bench has NO embedded runners*
 `runner`/`claude-runner` were removed; every `runner_type` is served by OpenRunner's consolidated
 runners (proven: codex/claude/opencodex sessions all create a thread on OpenRunner).
 
-## Swap status (v0.3.0)
+## Canonical "how to swap an app" template (R5-proven)
+fleet-bench is the **reference implementation** for swapping any fleet app onto OpenRunner. The proven,
+reusable recipe (full per-app checklist in `openrunner/docs/26` §4):
+1. Remove the app's embedded runners; route every `runner_type` to OpenRunner.
+2. **Shared workspace** — mount the SAME host dir the OpenRunner runners use (so content-level cases work).
+3. **Two modes** — `RUNNER_MODE=raw` (runner ports, harness/debug) vs `gateway` (agent-gateway `:9422`
+   `/v1/*` with a `runner` field + `X-OpenRunner-Tenant/App/User` — the **product proof**).
+4. **Backend-routed matrix** over `{codex,claude,opencodex,mock} × {raw,gateway}` → committed
+   `tests/regression_report.json`; require all complete + gateway cells carry a `/v1/audit` record.
+5. **Playwright UI e2e** for the runner selector; **AWS readiness** (API-key-only `docker-compose.aws.yml`).
+6. Deprecate (don't delete) the embedded runner dirs; keep it reversible by env.
+
+## Swap status (v0.3.1 — R5 complete)
 fleet-bench is **already fully swapped** — it has **no embedded runners**; every `runner_type` is
 served by OpenRunner's consolidated runners. The phased baseline-vs-candidate methodology below is the
 **general procedure for the OTHER upstream apps** (openbid, opensop, ASOS, OpenTax …) whose embedded

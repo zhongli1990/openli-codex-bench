@@ -1,5 +1,28 @@
 # fleet-bench — Release Notes
 
+## v0.3.1 (2026-06-07) — R5 complete: full platform-swap proof
+fleet-bench is now the **canonical clean-swap proof** for the OpenRunner platform. R5 gates:
+- **G1 Phase-0 regression suites** (the uplifted runners, previously 0 tests): runner-openai-codex
+  **10/10** (SDK-0.137 event mapping) · runner-claude **18/18** (claude-agent-sdk mapping + dual-auth).
+- **G2 cross-runner parity + Bradford acceptance** — zero-token, all 4 complete.
+- **Shared workspace volume** (HIGH blocker resolved) — backend mounts the SAME dir the runners use
+  (`${SHARED_WORKSPACES:-../openrunner/workspaces}`); content-level cases proven through the backend in
+  both modes (runner globbed the cloned files + read `.git/HEAD`).
+- **Backend-routed 4-runner matrix** (`tests/runner_matrix.py` → `tests/regression_report.json`):
+  **8/8** cells (codex/claude/opencodex/mock × raw/gateway) complete; every gateway cell carries a
+  `/v1/audit` record (the platform owns selection/registry/audit/cost).
+- **G3 frontend quality** + **G4 Playwright UI e2e** — booted live, **12 passed / 1 documented skip**.
+- **Gateway identity headers** — `X-OpenRunner-Tenant/App/User` (attribution real for R6+).
+- **G7 AWS readiness** — `docker-compose.aws.yml` (API-key-only, no subscription auth), `.env.aws.example`,
+  `DEPLOY_AWS.md`; deploy config valid; mock-safe dry-run boot.
+- **Known local-dev fragility:** the backend reaches raw runner ports via `host.docker.internal`, which
+  can momentarily refuse during runner recreation; **gateway mode + in-VPC DNS (the AWS path) avoids it.**
+
+Tag **v0.3.1**. Next: **R6 — OpenBid + OpenSOP** (do NOT start ASOS until both have gateway-mode
+regression reports).
+
+
+
 fleet-bench is a benchmark rig, not a shipped product — "releases" mark harness milestones.
 (The previous `docs/` tree was inherited verbatim from the cloned `saas-codex` product and has been
 removed; those docs live in the `saas-codex` repo. fleet-bench's docs are `README.md` + `FLEET_BENCH.md`.)
