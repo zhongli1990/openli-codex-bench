@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { RUNNERS, DEFAULT_RUNNER, type RunnerType } from "@/lib/runners";
+import { useAppContext } from "@/contexts/AppContext";
 
 type SettingsCategory = "general" | "runners" | "appearance" | "about";
 
 type Settings = {
   general: {
-    defaultRunner: string;
+    defaultRunner: RunnerType;
     sessionTimeout: number;
     autoSave: boolean;
   };
@@ -27,7 +29,7 @@ type Settings = {
 
 const DEFAULT_SETTINGS: Settings = {
   general: {
-    defaultRunner: "codex",
+    defaultRunner: DEFAULT_RUNNER,
     sessionTimeout: 60,
     autoSave: true,
   },
@@ -124,11 +126,14 @@ function SettingsSidebar({
 function GeneralSettings({ 
   settings, 
   onUpdate 
-}: { 
-  settings: Settings; 
+}: {
+  settings: Settings;
   onUpdate: (settings: Settings) => void;
 }) {
   const [saved, setSaved] = useState(false);
+  // Bind the default-runner control to the shared AppContext runner so the
+  // Settings choice actually drives (and stays in sync with) the active runner.
+  const { runnerType, setRunnerType } = useAppContext();
 
   const handleSave = () => {
     onUpdate(settings);
@@ -143,6 +148,14 @@ function GeneralSettings({
     });
   };
 
+  const handleSelectRunner = (value: RunnerType) => {
+    // Drive the active/default runner via AppContext (persists to the same key
+    // getInitialRunnerType reads + takes effect immediately, consistent with
+    // the top-bar switcher) and mirror into settings persistence.
+    setRunnerType(value);
+    updateGeneral("defaultRunner", value);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -155,34 +168,42 @@ function GeneralSettings({
           <label className="block text-sm font-medium text-zinc-700">Default Runner</label>
           <p className="text-xs text-zinc-500 mt-0.5">Select the AI runner for new sessions</p>
           <div className="mt-2 space-y-2">
-            <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-200 cursor-pointer hover:bg-zinc-50">
-              <input
-                type="radio"
-                name="runner"
-                value="codex"
-                checked={settings.general.defaultRunner === "codex"}
-                onChange={(e) => updateGeneral("defaultRunner", e.target.value)}
-                className="w-4 h-4 text-zinc-900"
-              />
-              <div>
-                <p className="text-sm font-medium text-zinc-900">OpenAI Agent</p>
-                <p className="text-xs text-zinc-500">OpenAI Codex SDK - agentic coding assistant</p>
-              </div>
-            </label>
-            <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-200 cursor-pointer hover:bg-zinc-50">
-              <input
-                type="radio"
-                name="runner"
-                value="claude"
-                checked={settings.general.defaultRunner === "claude"}
-                onChange={(e) => updateGeneral("defaultRunner", e.target.value)}
-                className="w-4 h-4 text-zinc-900"
-              />
-              <div>
-                <p className="text-sm font-medium text-zinc-900">Claude (Anthropic)</p>
-                <p className="text-xs text-zinc-500">Claude Sonnet 4 - advanced reasoning assistant</p>
-              </div>
-            </label>
+            {RUNNERS.map((runner) => {
+              const placeholder = runner.status === "placeholder";
+              return (
+                <label
+                  key={runner.value}
+                  className={`flex items-center gap-3 p-3 rounded-lg border border-zinc-200 cursor-pointer hover:bg-zinc-50 ${
+                    placeholder ? "opacity-70" : ""
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="runner"
+                    value={runner.value}
+                    checked={runnerType === runner.value}
+                    onChange={() => handleSelectRunner(runner.value)}
+                    className="w-4 h-4 text-zinc-900"
+                  />
+                  <span
+                    className={`flex h-6 w-8 flex-shrink-0 items-center justify-center rounded text-[10px] font-bold bg-${runner.color}-100 text-${runner.color}-700`}
+                  >
+                    {runner.short}
+                  </span>
+                  <div>
+                    <p className="flex items-center gap-1.5 text-sm font-medium text-zinc-900">
+                      {runner.label}
+                      {placeholder && (
+                        <span className="rounded bg-amber-100 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-700">
+                          Soon
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-xs text-zinc-500">{runner.description}</p>
+                  </div>
+                </label>
+              );
+            })}
           </div>
         </div>
 

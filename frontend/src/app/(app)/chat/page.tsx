@@ -8,8 +8,13 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useAppContext } from "@/contexts/AppContext";
 import { FileBrowser } from "@/components/workspace";
-
-type RunnerType = "codex" | "claude";
+import {
+  RUNNERS,
+  RUNNER_BY_VALUE,
+  type RunnerType,
+  backendRunnerFor,
+  isPlaceholderRunner,
+} from "@/lib/runners";
 
 type ChatMessage = {
   message_id: string;
@@ -113,7 +118,7 @@ function ChatPageContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           workspace_id: selectedWorkspaceId,
-          runner_type: runnerType
+          runner_type: backendRunnerFor(runnerType)
         })
       });
       if (r.ok) {
@@ -493,10 +498,8 @@ function ChatPageContent() {
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${
-                      s.runner_type === "claude" ? "bg-orange-400" : "bg-green-400"
-                    }`} />
-                    <span className="font-medium capitalize">{s.runner_type}</span>
+                    <span className={`w-2 h-2 rounded-full bg-${RUNNER_BY_VALUE[s.runner_type as RunnerType]?.color ?? "zinc"}-400`} />
+                    <span className="font-medium">{RUNNER_BY_VALUE[s.runner_type as RunnerType]?.label ?? s.runner_type}</span>
                   </div>
                   <div className="text-xs text-zinc-500 mt-0.5">
                     {s.run_count} runs • {new Date(s.created_at).toLocaleDateString()}
@@ -516,9 +519,19 @@ function ChatPageContent() {
               onChange={(e) => setRunnerType(e.target.value as RunnerType)}
               className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm bg-white"
             >
-              <option value="codex">Codex (OpenAI)</option>
-              <option value="claude">Claude (Anthropic)</option>
+              {RUNNERS.map((runner) => (
+                <option key={runner.value} value={runner.value}>
+                  {runner.label}
+                  {runner.status === "placeholder" ? " — Soon (preview)" : ""}
+                </option>
+              ))}
             </select>
+            {isPlaceholderRunner(runnerType) && (
+              <div className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+                <span className="font-semibold">{RUNNER_BY_VALUE[runnerType].label} is a placeholder runner</span>{" "}
+                — not yet activated; running against the Mock runner.
+              </div>
+            )}
           </div>
         )}
 
@@ -555,12 +568,8 @@ function ChatPageContent() {
               </span>
             )}
             {selectedSession && (
-              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                selectedSession.runner_type === "claude"
-                  ? "bg-orange-100 text-orange-700"
-                  : "bg-green-100 text-green-700"
-              }`}>
-                {selectedSession.runner_type}
+              <span className={`text-xs px-2 py-0.5 rounded-full bg-${RUNNER_BY_VALUE[selectedSession.runner_type as RunnerType]?.color ?? "zinc"}-100 text-${RUNNER_BY_VALUE[selectedSession.runner_type as RunnerType]?.color ?? "zinc"}-700`}>
+                {RUNNER_BY_VALUE[selectedSession.runner_type as RunnerType]?.label ?? selectedSession.runner_type}
               </span>
             )}
           </div>

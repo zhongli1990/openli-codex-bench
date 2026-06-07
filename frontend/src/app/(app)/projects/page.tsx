@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, type ChangeEvent } from "react";
 import Link from "next/link";
 import { UploadModal } from "@/components/workspace";
+import { RUNNER_BY_VALUE, type RunnerType } from "@/lib/runners";
 
 type Workspace = {
   workspace_id: string;
@@ -160,12 +161,8 @@ function WorkspaceCard({
                 className="flex items-center justify-between rounded-md bg-white px-3 py-2 border border-zinc-200"
               >
                 <div className="flex items-center gap-3">
-                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                    session.runner_type === "codex" 
-                      ? "bg-blue-100 text-blue-700" 
-                      : "bg-purple-100 text-purple-700"
-                  }`}>
-                    {session.runner_type}
+                  <span className={`px-2 py-0.5 rounded text-xs font-medium bg-${RUNNER_BY_VALUE[session.runner_type as RunnerType]?.color ?? "zinc"}-100 text-${RUNNER_BY_VALUE[session.runner_type as RunnerType]?.color ?? "zinc"}-700`}>
+                    {RUNNER_BY_VALUE[session.runner_type as RunnerType]?.label ?? session.runner_type}
                   </span>
                   <span className="text-sm text-zinc-600">
                     {session.run_count} runs

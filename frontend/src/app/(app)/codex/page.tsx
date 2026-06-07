@@ -7,19 +7,13 @@ import remarkGfm from "remark-gfm";
 import { useAppContext } from "@/contexts/AppContext";
 import { FileBrowser, UploadModal } from "@/components/workspace";
 import { getToken } from "@/lib/auth";
-
-type RunnerType = "codex" | "claude" | "gemini" | "azure" | "bedrock" | "openli" | "custom";
-
-// Runner configuration with availability status
-const RUNNERS = [
-  { value: "claude", label: "Claude Agent", available: true },
-  { value: "codex", label: "OpenAI Agent", available: true },
-  { value: "gemini", label: "Gemini Agent", available: false },
-  { value: "azure", label: "Azure OpenAI", available: false },
-  { value: "bedrock", label: "AWS Bedrock", available: false },
-  { value: "openli", label: "OpenLI Agent", available: false },
-  { value: "custom", label: "Custom Agent", available: false },
-] as const;
+import {
+  RUNNERS,
+  RUNNER_BY_VALUE,
+  type RunnerType,
+  backendRunnerFor,
+  isPlaceholderRunner,
+} from "@/lib/runners";
 
 type EventLine = {
   at: number;
@@ -421,7 +415,7 @@ function CodexPageContent() {
     const r = await fetch("/api/sessions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ workspace_id: selectedWorkspaceId, runner_type: runnerType })
+      body: JSON.stringify({ workspace_id: selectedWorkspaceId, runner_type: backendRunnerFor(runnerType) })
     });
 
     if (!r.ok) {
@@ -942,7 +936,7 @@ function CodexPageContent() {
                           }`}
                         >
                           <div className="flex justify-between">
-                            <span className="font-medium">{s.runner_type}</span>
+                            <span className="font-medium">{RUNNER_BY_VALUE[s.runner_type as RunnerType]?.label ?? s.runner_type}</span>
                             <span className="text-zinc-500">{s.run_count} runs</span>
                           </div>
                           <div className="text-zinc-500 truncate">
@@ -966,11 +960,6 @@ function CodexPageContent() {
                   value={runnerType}
                   onChange={(e) => {
                     const newRunner = e.target.value as RunnerType;
-                    const runner = RUNNERS.find(r => r.value === newRunner);
-                    if (runner && !runner.available) {
-                      alert(`${runner.label} is coming soon!`);
-                      return;
-                    }
                     setRunnerType(newRunner);
                     // Auto-clear session when runner changes
                     if (sessionId) {
@@ -984,15 +973,18 @@ function CodexPageContent() {
                   className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
                 >
                   {RUNNERS.map((runner) => (
-                    <option 
-                      key={runner.value} 
-                      value={runner.value}
-                      disabled={!runner.available}
-                    >
-                      {runner.label}{!runner.available ? " (Coming Soon)" : ""}
+                    <option key={runner.value} value={runner.value}>
+                      {runner.label}
+                      {runner.status === "placeholder" ? " — Soon (preview)" : ""}
                     </option>
                   ))}
                 </select>
+                {isPlaceholderRunner(runnerType) && (
+                  <div className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                    <span className="font-semibold">{RUNNER_BY_VALUE[runnerType].label} is a placeholder runner</span>{" "}
+                    — not yet activated; running against the Mock runner.
+                  </div>
+                )}
               </label>
               {sessionId && (
                 <button
@@ -1071,7 +1063,7 @@ function CodexPageContent() {
               </span>
               {sessionId && (
                 <span className="text-zinc-500">
-                  {runnerType} • {sessionId.slice(0, 8)}...
+                  {RUNNER_BY_VALUE[runnerType]?.label ?? runnerType} • {sessionId.slice(0, 8)}...
                 </span>
               )}
             </div>

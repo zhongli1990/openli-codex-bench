@@ -1,8 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
-
-type RunnerType = "codex" | "claude" | "gemini" | "azure" | "bedrock" | "openli" | "custom";
+import { type RunnerType, DEFAULT_RUNNER, isRunnerType } from "@/lib/runners";
 
 const RUNNER_TYPE_STORAGE_KEY = "saas-codex-runner-type";
 
@@ -10,11 +9,11 @@ const RUNNER_TYPE_STORAGE_KEY = "saas-codex-runner-type";
 function getInitialRunnerType(): RunnerType {
   if (typeof window !== "undefined") {
     const stored = localStorage.getItem(RUNNER_TYPE_STORAGE_KEY);
-    if (stored === "codex" || stored === "claude" || stored === "gemini" || stored === "azure" || stored === "bedrock" || stored === "openli" || stored === "custom") {
-      return stored as RunnerType;
+    if (isRunnerType(stored)) {
+      return stored;
     }
   }
-  return "claude";
+  return DEFAULT_RUNNER;
 }
 
 type Workspace = {

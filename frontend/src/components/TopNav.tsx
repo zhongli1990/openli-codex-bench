@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { getMe, logout, User } from "@/lib/auth";
 import AboutModal, { VERSION } from "./AboutModal";
 import SettingsMenu from "./SettingsMenu";
+import RunnerSwitcher from "./RunnerSwitcher";
 
 interface TopNavProps {
   onMenuClick?: () => void;
@@ -91,6 +92,9 @@ export default function TopNav({ onMenuClick }: TopNavProps) {
 
         {/* Right side */}
         <div className="flex items-center gap-2">
+          {/* Runner Switcher */}
+          <RunnerSwitcher />
+
           {/* Settings Button */}
           <button
             onClick={() => setShowSettings(true)}

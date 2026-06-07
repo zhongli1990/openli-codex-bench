@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { RUNNER_BY_VALUE, type RunnerType } from "@/lib/runners";
 
 type DashboardStats = {
   workspaces_count: number;
@@ -202,7 +203,7 @@ export default function DashboardPage() {
                           Run {activity.status} - {activity.workspace_name}
                         </p>
                         <p className="text-xs text-zinc-500 mt-0.5">
-                          {activity.runner_type} • {activity.prompt_preview}
+                          {RUNNER_BY_VALUE[activity.runner_type as RunnerType]?.label ?? activity.runner_type} • {activity.prompt_preview}
                         </p>
                       </div>
                     </div>
