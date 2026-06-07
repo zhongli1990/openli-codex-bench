@@ -3,3 +3,4 @@
 /playwright-report/
 /playwright/.auth/
 /e2e/results.json
+/e2e/*.png
