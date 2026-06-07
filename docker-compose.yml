@@ -35,7 +35,7 @@ services:
       RUNNER_MOCK_URL: ${RUNNER_MOCK_URL:-http://host.docker.internal:9433}
       # Gateway/facade mode: route runs through OpenRunner's agent-gateway (/v1/*)
       # instead of raw runner ports. raw (default) keeps current behaviour.
-      RUNNER_MODE: ${RUNNER_MODE:-raw}
+      RUNNER_MODE: ${RUNNER_MODE:-gateway}
       OPENRUNNER_GATEWAY_URL: ${OPENRUNNER_GATEWAY_URL:-http://host.docker.internal:9422}
       OPENRUNNER_GATEWAY_TOKEN: ${OPENRUNNER_GATEWAY_TOKEN:-}
       # Product identity for gateway-mode audit/cost/memory attribution (R6+).
