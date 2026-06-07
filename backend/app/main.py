@@ -30,9 +30,9 @@ from .admin.router import router as admin_router
 
 
 WORKSPACES_ROOT = os.environ.get("WORKSPACES_ROOT", "/workspaces")
-RUNNER_URL = os.environ.get("RUNNER_URL", "http://runner:8081")
-RUNNER_CODEX_URL = os.environ.get("RUNNER_CODEX_URL", "http://runner:8081")
-RUNNER_CLAUDE_URL = os.environ.get("RUNNER_CLAUDE_URL", "http://claude-runner:8082")
+RUNNER_URL = os.environ.get("RUNNER_URL", "http://host.docker.internal:9430")
+RUNNER_CODEX_URL = os.environ.get("RUNNER_CODEX_URL", "http://host.docker.internal:9430")
+RUNNER_CLAUDE_URL = os.environ.get("RUNNER_CLAUDE_URL", "http://host.docker.internal:9431")
 # Fleet-bench swap targets — OpenRunner's runners (same /threads+/runs+/events protocol → no adapter).
 # Default to OpenRunner's host-published ports so this clone swaps runners by config alone.
 RUNNER_OPENCODEX_URL = os.environ.get("RUNNER_OPENCODEX_URL", "http://host.docker.internal:9432")

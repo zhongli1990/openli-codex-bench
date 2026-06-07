@@ -30,11 +30,12 @@ The methodology, phases, and routing live in [`FLEET_BENCH.md`](FLEET_BENCH.md).
 | `runner_type` | engine | auth | served by |
 |---|---|---|---|
 | `opencodex` | OpenLI's 3rd-gen agentic SDK (model-agnostic) | API key | **OpenRunner** (host `9432`) |
-| `openai-codex` | real OpenAI Codex agent (`@openai/codex-sdk`) | API key · ChatGPT subscription | OpenRunner (`9430`) or clone-embedded |
-| `claude` | real Claude Code agent (`claude-agent-sdk`) | API key · Claude Code subscription | OpenRunner (`9431`) or clone-embedded |
-| `mock` | deterministic, zero-token | — | OpenRunner (`9433`) |
+| `openai-codex` | real OpenAI Codex agent (`@openai/codex-sdk`) | API key · ChatGPT subscription | **OpenRunner** (`9430`) |
+| `claude` | real Claude Code agent (`claude-agent-sdk`) | API key · Claude Code subscription | **OpenRunner** (`9431`) |
+| `mock` | deterministic, zero-token | — | **OpenRunner** (`9433`) |
 
-Switchable by env (`RUNNER_*_URL`); change one variable at a time (see the controlled-swap procedure).
+fleet-bench has **no embedded runners** — the legacy `runner`/`claude-runner` were removed; **every**
+`runner_type` is served by OpenRunner's consolidated runners (switchable by env `RUNNER_*_URL`).
 
 ---
 

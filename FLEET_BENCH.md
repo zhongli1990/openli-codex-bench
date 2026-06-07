@@ -16,11 +16,13 @@ fe 9440 · be 9441 · codex 9442 · pg 9443 · claude 9444 · prompt 9445 · eva
 ## Runner routing (`backend/_get_runner_url`)
 | runner_type | URL (default) | source |
 |---|---|---|
-| `codex` | `http://runner:8081` (embedded) | clone's own |
-| `claude` | `http://claude-runner:8082` (embedded) | clone's own |
-| `opencodex` | `http://host.docker.internal:9432` | **OpenRunner** (new) |
+| `codex` | `http://host.docker.internal:9430` | **OpenRunner** openai-codex |
+| `claude` | `http://host.docker.internal:9431` | **OpenRunner** claude |
+| `opencodex` | `http://host.docker.internal:9432` | **OpenRunner** opencodex |
 | `mock` | `http://host.docker.internal:9433` | **OpenRunner** mock (zero-token) |
-All overridable via env (`RUNNER_*_URL`).
+All overridable via env (`RUNNER_*_URL`). **fleet-bench has NO embedded runners** — the legacy
+`runner`/`claude-runner` were removed; every `runner_type` is served by OpenRunner's consolidated
+runners (proven: codex/claude/opencodex sessions all create a thread on OpenRunner).
 
 ## Phased swap (per the review)
 - **Phase A — baseline:** boot fleet-bench with its own `codex` + `claude` runners; run the case set

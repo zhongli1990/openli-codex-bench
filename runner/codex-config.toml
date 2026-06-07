@@ -1,4 +1,0 @@
-# Codex CLI config for Docker environment
-# Disable sandbox since Docker provides isolation
-sandbox_mode = "danger-full-access"
-approval_policy = "never"

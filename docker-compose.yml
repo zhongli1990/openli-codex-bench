@@ -17,62 +17,9 @@ services:
       start_period: 30s
     restart: unless-stopped
 
-  runner:
-    build:
-      context: ./runner
-    environment:
-      CODEX_API_KEY: ${CODEX_API_KEY}
-      CODEX_SANDBOX_TYPE: none
-      WORKSPACES_ROOT: /workspaces
-      PORT: 8081
-    volumes:
-      - ./workspaces:/workspaces
-    ports:
-      - "9442:8081"
-    healthcheck:
-      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:8081/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
-      interval: 10m
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    restart: unless-stopped
-
-  claude-runner:
-    build:
-      context: ./claude-runner
-    environment:
-      # Anthropic API Key (recommended)
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      # AWS Bedrock (optional - uncomment CLAUDE_CODE_USE_BEDROCK in .env)
-      CLAUDE_CODE_USE_BEDROCK: ${CLAUDE_CODE_USE_BEDROCK:-}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
-      AWS_REGION: ${AWS_REGION:-us-east-1}
-      # Google Vertex AI (optional)
-      CLAUDE_CODE_USE_VERTEX: ${CLAUDE_CODE_USE_VERTEX:-}
-      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
-      GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-}
-      # Microsoft Azure (optional)
-      CLAUDE_CODE_USE_FOUNDRY: ${CLAUDE_CODE_USE_FOUNDRY:-}
-      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
-      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
-      # Runner config
-      WORKSPACES_ROOT: /workspaces
-      PORT: 8082
-      GLOBAL_SKILLS_PATH: /app/skills
-      ENABLE_HOOKS: "true"
-      MAX_AGENT_TURNS: "20"
-    volumes:
-      - ./workspaces:/workspaces
-    ports:
-      - "9444:8082"
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/health');\""]
-      interval: 10m
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    restart: unless-stopped
+  # Legacy embedded runners REMOVED. fleet-bench now consumes OpenRunner's consolidated runners
+  # (host-published 9430-9433) for every runner_type — the OpenLI OpenRunner services. Same Unified
+  # Runner Protocol → no adapter. Defaults below; override RUNNER_*_URL for a different OpenRunner host.
 
   backend:
     build:
@@ -80,10 +27,10 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://saas:saas@postgres:5432/saas
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-secret-key-change-in-production}
-      RUNNER_URL: http://runner:8081
-      RUNNER_CODEX_URL: ${RUNNER_CODEX_URL:-http://runner:8081}
-      RUNNER_CLAUDE_URL: ${RUNNER_CLAUDE_URL:-http://claude-runner:8082}
-      # Fleet-bench swap-in: OpenRunner's runners (host-published 9430-9433). Same protocol → no adapter.
+      # All runner_types route to OpenRunner's consolidated runners (host-published 9430-9433).
+      RUNNER_URL: ${RUNNER_CODEX_URL:-http://host.docker.internal:9430}
+      RUNNER_CODEX_URL: ${RUNNER_CODEX_URL:-http://host.docker.internal:9430}
+      RUNNER_CLAUDE_URL: ${RUNNER_CLAUDE_URL:-http://host.docker.internal:9431}
       RUNNER_OPENCODEX_URL: ${RUNNER_OPENCODEX_URL:-http://host.docker.internal:9432}
       RUNNER_MOCK_URL: ${RUNNER_MOCK_URL:-http://host.docker.internal:9433}
       WORKSPACES_ROOT: /workspaces
@@ -96,8 +43,6 @@ services:
       - "9441:8080"
     depends_on:
       - postgres
-      - runner
-      - claude-runner
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health');\""]
       interval: 10m
@@ -135,7 +80,7 @@ services:
       GLOBAL_SKILLS_PATH: /app/skills
       PORT: 8083
     volumes:
-      - ./claude-runner/skills:/app/skills:ro
+      - ./skills:/app/skills:ro
       - ./tests:/app/tests:ro
     ports:
       - "9445:8083"
