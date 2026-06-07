@@ -155,22 +155,54 @@ def _assistant_text_from_events(events: list) -> str:
     return text
 
 
+# ── Conversation-history caps (R6.1 reviewer acceptance gate) ─────────────────
+# The prior assembly walked ALL prior runs in a session — strict session_id
+# scoping (no cross-session bleed) but UNBOUNDED, so a long session bloated cost
+# and context. We now cap on two axes and trim OLDEST-first until under BOTH:
+#   • MAX_HISTORY_TURNS  — keep only the last N {user|assistant} turns (default 10)
+#   • MAX_HISTORY_CHARS  — total char budget across kept turns (default 12000)
+# We also only include COMPLETED runs (status == "completed"); failed/in-progress
+# runs are skipped so partial/aborted turns never pollute recall. Session scoping
+# is unchanged — runs are still fetched strictly by session_id.
+MAX_HISTORY_TURNS = int(os.environ.get("MAX_HISTORY_TURNS", "10"))
+MAX_HISTORY_CHARS = int(os.environ.get("MAX_HISTORY_CHARS", "12000"))
+
+
+def _trim_history(history: list[dict], max_turns: int, max_chars: int) -> list[dict]:
+    """Trim OLDEST turns first until the history is within BOTH the turn cap and
+    the char budget. `history` is oldest→newest; the most recent turns are the
+    ones we keep (preserves turn-2 recall of the immediately-prior turn)."""
+    if max_turns >= 0:
+        history = history[-max_turns:] if max_turns else []
+    if max_chars >= 0:
+        # Drop oldest until total content chars fit the budget (keep ≥1 if any).
+        while history and sum(len(h.get("content", "")) for h in history) > max_chars:
+            if len(history) == 1:
+                break  # never strip the single most-recent turn entirely
+            history = history[1:]
+    return history
+
+
 async def _assemble_conversation_history(run_repo, session_id) -> list[dict]:
     """Assemble prior turns for a session as [{role:"user"|"assistant", content}].
-    For each PRIOR completed run (oldest→newest): the user turn = run.prompt; the
-    assistant turn = reconstructed answer text (omitted if empty). First turn of a
-    session yields [] → first-turn behavior is unchanged."""
+    For each PRIOR COMPLETED run (oldest→newest): the user turn = run.prompt; the
+    assistant turn = reconstructed answer text (omitted if empty). Failed/in-progress
+    runs are skipped. The result is capped to the last MAX_HISTORY_TURNS turns within
+    a MAX_HISTORY_CHARS budget (oldest trimmed first). First turn of a session yields
+    [] → first-turn behavior is unchanged."""
     runs = await run_repo.list_by_session(session_id)
     runs = sorted(runs, key=lambda r: r.created_at)  # oldest first
     history: list[dict] = []
     for r in runs:
+        if r.status != "completed":
+            continue  # skip failed / in-progress runs
         if r.prompt:
             history.append({"role": "user", "content": r.prompt})
         events = await run_repo.get_events(r.id)
         answer = _assistant_text_from_events(events)
         if answer:
             history.append({"role": "assistant", "content": answer})
-    return history
+    return _trim_history(history, MAX_HISTORY_TURNS, MAX_HISTORY_CHARS)
 
 
 def _derive_display_name(source_type: str, source_uri: str) -> str:
