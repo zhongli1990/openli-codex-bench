@@ -24,22 +24,33 @@ All overridable via env (`RUNNER_*_URL`). **fleet-bench has NO embedded runners*
 `runner`/`claude-runner` were removed; every `runner_type` is served by OpenRunner's consolidated
 runners (proven: codex/claude/opencodex sessions all create a thread on OpenRunner).
 
-## Phased swap (per the review)
-- **Phase A — baseline:** boot fleet-bench with its own `codex` + `claude` runners; run the case set
-  → record transcripts/timings (the embedded-runner baseline).
-- **Phase B — swap-in canary:** run the SAME cases with `runner_type=opencodex` → routes to
-  OpenRunner's runner (9432). Like-for-like perf + transcript diff vs Phase A.
-- **Phase C — full swap:** repoint `codex→9430` / `claude→9431` / add `mock→9433` (OpenRunner
-  runners), disable the clone's embedded runner dockers (`docker compose up --scale runner=0 --scale
-  claude-runner=0`), and run everything against OpenRunner.
+## Swap status (v0.3.0)
+fleet-bench is **already fully swapped** — it has **no embedded runners**; every `runner_type` is
+served by OpenRunner's consolidated runners. The phased baseline-vs-candidate methodology below is the
+**general procedure for the OTHER upstream apps** (openbid, opensop, ASOS, OpenTax …) whose embedded
+runners are still being swapped out. For a fleet-bench regression baseline, pin a tagged old-runner
+image rather than re-embedding it.
+
+- **Phase A — baseline (per app being swapped):** boot the app with its OWN embedded runners; run the
+  case set → record transcripts/timings (the embedded-runner baseline).
+- **Phase B — swap-in canary:** run the SAME cases routed to OpenRunner (raw runner port, or the
+  gateway facade). Like-for-like perf + transcript diff vs Phase A.
+- **Phase C — full swap:** route all `runner_type`s to OpenRunner; deprecate (don't delete) the app's
+  embedded runner dirs.
+
+## Routing modes (R5)
+- **raw runner mode** (harness/debug) — `RUNNER_*_URL` → OpenRunner runner ports `9430-9433` (current).
+- **gateway/facade mode** (product proof) — `RUNNER_*_URL` → OpenRunner **agent-gateway** (`:9422`,
+  `/v1/threads`+`/v1/runs`+`/v1/events`), so OpenRunner owns runner selection, registry, audit, cost,
+  auth, and policy. This is the true *platform* swap.
 
 ## Run
 ```bash
-# OpenRunner runners must be up (host 9430-9433) — they are the swap targets.
+# OpenRunner runners (and, for gateway mode, the agent-gateway) must be up.
 cd fleet-bench
-docker compose up -d postgres backend frontend          # Phase A core (+ runner/claude-runner)
-# Phase B/C: drive the case set with runner_type ∈ {codex, claude, opencodex, mock}
-#   POST :9441/api/... with runner_type=opencodex  → OpenRunner's opencodex runner
+docker compose up -d postgres backend frontend          # no embedded runners; runners served by OpenRunner
+# drive the case set with runner_type ∈ {codex, claude, opencodex, mock}
+#   POST :9441/api/sessions {runner_type, repo_url}  → OpenRunner
 ```
 
 ## Benchmark records (the parity scorecard)
