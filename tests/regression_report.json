@@ -28,8 +28,8 @@
       "pass": true,
       "error": null,
       "_timing": {
-        "session_ms": 896,
-        "total_ms": 1160
+        "session_ms": 2232,
+        "total_ms": 2486
       }
     },
     {
@@ -42,8 +42,8 @@
       "pass": true,
       "error": null,
       "_timing": {
-        "session_ms": 1457,
-        "total_ms": 1759
+        "session_ms": 2850,
+        "total_ms": 3315
       }
     },
     {
@@ -56,8 +56,8 @@
       "pass": true,
       "error": null,
       "_timing": {
-        "session_ms": 697,
-        "total_ms": 984
+        "session_ms": 693,
+        "total_ms": 1031
       }
     },
     {
@@ -70,8 +70,8 @@
       "pass": true,
       "error": null,
       "_timing": {
-        "session_ms": 972,
-        "total_ms": 1297
+        "session_ms": 737,
+        "total_ms": 1039
       }
     },
     {
@@ -84,8 +84,8 @@
       "pass": true,
       "error": null,
       "_timing": {
-        "session_ms": 1294,
-        "total_ms": 1469
+        "session_ms": 1042,
+        "total_ms": 1259
       }
     },
     {
@@ -98,8 +98,8 @@
       "pass": true,
       "error": null,
       "_timing": {
-        "session_ms": 1995,
-        "total_ms": 2184
+        "session_ms": 1235,
+        "total_ms": 1320
       }
     },
     {
@@ -112,8 +112,8 @@
       "pass": true,
       "error": null,
       "_timing": {
-        "session_ms": 1194,
-        "total_ms": 1755
+        "session_ms": 3621,
+        "total_ms": 3768
       }
     },
     {
@@ -126,8 +126,8 @@
       "pass": true,
       "error": null,
       "_timing": {
-        "session_ms": 1037,
-        "total_ms": 1405
+        "session_ms": 1989,
+        "total_ms": 2363
       }
     }
   ]

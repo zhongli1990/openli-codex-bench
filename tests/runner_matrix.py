@@ -177,11 +177,22 @@ def run_cell(mode: str, runner: str) -> dict:
     t0 = time.time()
     before = datetime.now(timezone.utc).isoformat()
 
-    repo_url = _unique_repo_url(mode, runner)
-    code, data = _http_json(
-        "POST", f"{BACKEND}/api/sessions",
-        {"repo_url": repo_url, "runner_type": runner},
-    )
+    # Re-roll the case-permuted URL on a uq_workspace_source collision: the
+    # permutation space of octocat/Hello-World is small, so two cells (or a
+    # leftover row) can hit the same source_uri. Retry with a fresh permutation;
+    # this is harness-flakiness hardening only (no app behaviour change).
+    code = data = None
+    for _attempt in range(6):
+        repo_url = _unique_repo_url(mode, runner)
+        code, data = _http_json(
+            "POST", f"{BACKEND}/api/sessions",
+            {"repo_url": repo_url, "runner_type": runner},
+        )
+        detail = (data or {}).get("detail", "") if isinstance(data, dict) else str(data)
+        if code == 200 and data and data.get("thread_id"):
+            break
+        if "uq_workspace_source" not in str(detail) and code not in (409, 500):
+            break
     if code != 200 or not data or not data.get("thread_id"):
         cell["error"] = f"create_session {code}: {(data or {}).get('detail')}"
         timing["total_ms"] = int((time.time() - t0) * 1000)
